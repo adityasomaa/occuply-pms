@@ -1,0 +1,236 @@
+@import "tailwindcss";
+@import "tw-animate-css";
+@import "shadcn/tailwind.css";
+
+@custom-variant dark (&:is(.dark *));
+
+/* ---------------------------------------------------------------------------
+   Occuply design tokens
+   Derived from the Occuply brand guidelines:
+     Primary Orange #FF7A00 · Deep Charcoal #171717 · White #FFFFFF
+     Soft Gray #F5F5F3 · Slate #686868
+   Usage ratio 10 / 25 / 60 / 5 is honoured by keeping orange an accent only.
+   Every neutral is tinted toward the brand hue (50.5) at very low chroma so
+   the greys read warm instead of clinical.
+--------------------------------------------------------------------------- */
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --font-sans: var(--font-montserrat);
+  --font-display: var(--font-poppins);
+  --font-heading: var(--font-montserrat);
+  --font-mono: var(--font-poppins);
+  --color-sidebar-ring: var(--sidebar-ring);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar: var(--sidebar);
+  --color-chart-5: var(--chart-5);
+  --color-chart-4: var(--chart-4);
+  --color-chart-3: var(--chart-3);
+  --color-chart-2: var(--chart-2);
+  --color-chart-1: var(--chart-1);
+  --color-ring: var(--ring);
+  --color-input: var(--input);
+  --color-border: var(--border);
+  --color-destructive: var(--destructive);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-accent: var(--accent);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-muted: var(--muted);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-secondary: var(--secondary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-primary: var(--primary);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-popover: var(--popover);
+  --color-card-foreground: var(--card-foreground);
+  --color-card: var(--card);
+
+  /* Occupancy / operational status ramp */
+  --color-status-ok: var(--status-ok);
+  --color-status-warn: var(--status-warn);
+  --color-status-risk: var(--status-risk);
+  --color-status-info: var(--status-info);
+  --color-status-idle: var(--status-idle);
+
+  --radius-sm: calc(var(--radius) * 0.55);
+  --radius-md: calc(var(--radius) * 0.75);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) * 1.35);
+  --radius-2xl: calc(var(--radius) * 1.75);
+  --radius-3xl: calc(var(--radius) * 2.2);
+  --radius-4xl: calc(var(--radius) * 2.6);
+}
+
+:root {
+  --radius: 0.7rem;
+
+  /* Soft Gray #F5F5F3 is the working surface, White is the raised plane. */
+  --background: oklch(0.9752 0.0032 62);
+  --foreground: oklch(0.2046 0.006 50.5);
+
+  --card: oklch(1 0 0);
+  --card-foreground: oklch(0.2046 0.006 50.5);
+  --popover: oklch(1 0 0);
+  --popover-foreground: oklch(0.2046 0.006 50.5);
+
+  /* Deep Charcoal carries primary actions; orange stays the accent. */
+  --primary: oklch(0.2046 0.008 50.5);
+  --primary-foreground: oklch(0.9885 0.003 62);
+
+  --secondary: oklch(0.955 0.0045 62);
+  --secondary-foreground: oklch(0.2046 0.008 50.5);
+
+  --muted: oklch(0.955 0.0045 62);
+  --muted-foreground: oklch(0.5173 0.0095 50.5);
+
+  /* Primary Orange #FF7A00 */
+  --accent: oklch(0.723 0.1897 50.54);
+  --accent-foreground: oklch(0.145 0.02 50.5);
+  --accent-soft: oklch(0.945 0.038 62);
+  --accent-ring: oklch(0.723 0.1897 50.54 / 45%);
+
+  --destructive: oklch(0.582 0.204 26.5);
+  --border: oklch(0.899 0.005 62);
+  --input: oklch(0.899 0.005 62);
+  --ring: oklch(0.723 0.1897 50.54);
+
+  /* Charts: orange leads, then a warm-to-cool descent so series stay
+     distinguishable without leaning on hue alone. */
+  --chart-1: oklch(0.723 0.1897 50.54);
+  --chart-2: oklch(0.808 0.132 62);
+  --chart-3: oklch(0.42 0.028 50.5);
+  --chart-4: oklch(0.63 0.086 38);
+  --chart-5: oklch(0.878 0.055 66);
+
+  --status-ok: oklch(0.588 0.128 152);
+  --status-warn: oklch(0.75 0.156 76);
+  --status-risk: oklch(0.582 0.204 26.5);
+  --status-info: oklch(0.58 0.096 240);
+  --status-idle: oklch(0.5173 0.0095 50.5);
+
+  --sidebar: oklch(1 0 0);
+  --sidebar-foreground: oklch(0.2046 0.006 50.5);
+  --sidebar-primary: oklch(0.723 0.1897 50.54);
+  --sidebar-primary-foreground: oklch(0.145 0.02 50.5);
+  --sidebar-accent: oklch(0.958 0.012 62);
+  --sidebar-accent-foreground: oklch(0.2046 0.008 50.5);
+  --sidebar-border: oklch(0.912 0.005 62);
+  --sidebar-ring: oklch(0.723 0.1897 50.54);
+}
+
+.dark {
+  /* Night audit / late-shift front desk. Charcoal deepened, never pure black. */
+  --background: oklch(0.1685 0.005 50.5);
+  --foreground: oklch(0.955 0.004 62);
+
+  --card: oklch(0.2135 0.006 50.5);
+  --card-foreground: oklch(0.955 0.004 62);
+  --popover: oklch(0.2135 0.006 50.5);
+  --popover-foreground: oklch(0.955 0.004 62);
+
+  --primary: oklch(0.955 0.004 62);
+  --primary-foreground: oklch(0.2046 0.008 50.5);
+
+  --secondary: oklch(0.268 0.007 50.5);
+  --secondary-foreground: oklch(0.955 0.004 62);
+
+  --muted: oklch(0.268 0.007 50.5);
+  --muted-foreground: oklch(0.708 0.011 50.5);
+
+  --accent: oklch(0.745 0.176 52);
+  --accent-foreground: oklch(0.17 0.02 50.5);
+  --accent-soft: oklch(0.298 0.045 48);
+  --accent-ring: oklch(0.745 0.176 52 / 50%);
+
+  --destructive: oklch(0.68 0.182 24);
+  --border: oklch(1 0 0 / 11%);
+  --input: oklch(1 0 0 / 15%);
+  --ring: oklch(0.745 0.176 52);
+
+  --chart-1: oklch(0.745 0.176 52);
+  --chart-2: oklch(0.842 0.118 66);
+  --chart-3: oklch(0.62 0.022 50.5);
+  --chart-4: oklch(0.68 0.094 34);
+  --chart-5: oklch(0.9 0.048 70);
+
+  --status-ok: oklch(0.702 0.128 152);
+  --status-warn: oklch(0.8 0.146 78);
+  --status-risk: oklch(0.68 0.182 24);
+  --status-info: oklch(0.7 0.09 240);
+  --status-idle: oklch(0.66 0.011 50.5);
+
+  --sidebar: oklch(0.1935 0.006 50.5);
+  --sidebar-foreground: oklch(0.955 0.004 62);
+  --sidebar-primary: oklch(0.745 0.176 52);
+  --sidebar-primary-foreground: oklch(0.17 0.02 50.5);
+  --sidebar-accent: oklch(0.272 0.009 50.5);
+  --sidebar-accent-foreground: oklch(0.955 0.004 62);
+  --sidebar-border: oklch(1 0 0 / 10%);
+  --sidebar-ring: oklch(0.745 0.176 52);
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+  body {
+    @apply bg-background text-foreground;
+    font-feature-settings: "cv11", "ss01";
+    text-rendering: optimizeLegibility;
+  }
+  html {
+    @apply font-sans;
+    -webkit-tap-highlight-color: transparent;
+  }
+  /* Figures in operational tables must never dance between rows. */
+  .num {
+    font-variant-numeric: tabular-nums;
+    font-family: var(--font-poppins), var(--font-montserrat), sans-serif;
+    letter-spacing: -0.01em;
+  }
+}
+
+@layer components {
+  /* Brand label style: Montserrat Medium, uppercase, tracked out. */
+  .label-brand {
+    @apply text-[0.6875rem] font-medium uppercase tracking-[0.12em] text-muted-foreground;
+  }
+}
+
+@layer utilities {
+  .text-accent-brand {
+    color: var(--accent);
+  }
+  .bg-accent-soft {
+    background-color: var(--accent-soft);
+  }
+  /* Exponential ease-out, per the motion spec. No bounce on data surfaces. */
+  .ease-occuply {
+    transition-timing-function: cubic-bezier(0.16, 1, 0.3, 1);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* Scrollbars inside dense panels stay out of the way until needed. */
+@supports (scrollbar-width: thin) {
+  .scroll-slim {
+    scrollbar-width: thin;
+    scrollbar-color: var(--border) transparent;
+  }
+}
