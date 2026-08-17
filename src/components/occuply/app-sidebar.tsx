@@ -15,7 +15,7 @@ import {
   WrenchIcon,
 } from "lucide-react"
 
-import { LogoLockup } from "@/components/occuply/logo"
+import { LogoLockup, LogoMark } from "@/components/occuply/logo"
 import { PropertySwitcher } from "@/components/occuply/property-switcher"
 import { NavUser } from "@/components/occuply/nav-user"
 import {
@@ -90,12 +90,7 @@ export function AppSidebar({
         <div className="flex h-8 items-center px-2 group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:px-0">
           <Link href="/" aria-label="Occuply home" className="flex items-center">
             <LogoLockup priority className="group-data-[collapsible=icon]:hidden" />
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img
-              src="/icon.png"
-              alt="Occuply"
-              className="hidden size-7 group-data-[collapsible=icon]:block"
-            />
+            <LogoMark size={28} className="hidden group-data-[collapsible=icon]:block" />
           </Link>
         </div>
         <div className="group-data-[collapsible=icon]:hidden">

@@ -1,7 +1,6 @@
 "use client"
 
 import * as React from "react"
-import { useRouter } from "next/navigation"
 import Link from "next/link"
 import { BuildingIcon, CheckIcon, ChevronsUpDownIcon, PlusIcon, SettingsIcon } from "lucide-react"
 
@@ -15,7 +14,7 @@ import {
 } from "@/components/ui/dropdown-menu"
 import { SidebarMenu, SidebarMenuButton, SidebarMenuItem, useSidebar } from "@/components/ui/sidebar"
 import type { Property } from "@/lib/types"
-import { PROPERTY_COOKIE } from "@/lib/constants"
+import { switchProperty } from "@/app/actions"
 import { cn } from "@/lib/utils"
 
 export function PropertySwitcher({
@@ -25,22 +24,18 @@ export function PropertySwitcher({
   properties: Property[]
   activeId: string
 }) {
-  const router = useRouter()
   const { isMobile } = useSidebar()
-  const [pending, setPending] = React.useState<string | null>(null)
+  const [isPending, startTransition] = React.useTransition()
+  const [target, setTarget] = React.useState<string | null>(null)
   const active = properties.find((p) => p.id === activeId) ?? properties[0]
 
   function switchTo(id: string) {
     if (id === activeId) return
-    setPending(id)
-    // One year, root path, so every server render picks the same property up.
-    document.cookie = `${PROPERTY_COOKIE}=${id}; path=/; max-age=31536000; samesite=lax`
-    router.refresh()
+    setTarget(id)
+    startTransition(() => {
+      void switchProperty(id)
+    })
   }
-
-  React.useEffect(() => {
-    setPending(null)
-  }, [activeId])
 
   return (
     <SidebarMenu>
@@ -77,7 +72,7 @@ export function PropertySwitcher({
                 <DropdownMenuItem
                   key={p.id}
                   onClick={() => switchTo(p.id)}
-                  className={cn("gap-3 py-2", pending === p.id && "opacity-60")}
+                  className={cn("gap-3 py-2", isPending && target === p.id && "opacity-60")}
                 >
                   <span
                     className={cn(

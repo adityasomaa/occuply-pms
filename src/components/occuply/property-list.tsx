@@ -1,12 +1,11 @@
 "use client"
 
 import * as React from "react"
-import { useRouter } from "next/navigation"
 import { CheckIcon, MapPinIcon, StarIcon } from "lucide-react"
 
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
-import { PROPERTY_COOKIE } from "@/lib/constants"
+import { switchProperty } from "@/app/actions"
 import { moneyShort, percent } from "@/lib/format"
 import type { Property } from "@/lib/types"
 import { cn } from "@/lib/utils"
@@ -20,22 +19,22 @@ export interface PropertyRow {
 }
 
 export function PropertyList({ rows, activeId }: { rows: PropertyRow[]; activeId: string }) {
-  const router = useRouter()
-  const [pending, setPending] = React.useState<string | null>(null)
+  const [isPending, startTransition] = React.useTransition()
+  const [target, setTarget] = React.useState<string | null>(null)
 
   function switchTo(id: string) {
     if (id === activeId) return
-    setPending(id)
-    document.cookie = `${PROPERTY_COOKIE}=${id}; path=/; max-age=31536000; samesite=lax`
-    router.refresh()
+    setTarget(id)
+    startTransition(() => {
+      void switchProperty(id)
+    })
   }
-
-  React.useEffect(() => setPending(null), [activeId])
 
   return (
     <ul className="grid gap-3 lg:grid-cols-2 2xl:grid-cols-3">
       {rows.map(({ property: p, occupancy, adr, openTickets, liveChannels }) => {
         const active = p.id === activeId
+        const busy = isPending && target === p.id
         return (
           <li
             key={p.id}
@@ -98,11 +97,11 @@ export function PropertyList({ rows, activeId }: { rows: PropertyRow[]; activeId
             <Button
               size="sm"
               variant={active ? "outline" : "default"}
-              disabled={active || pending === p.id}
+              disabled={active || busy}
               onClick={() => switchTo(p.id)}
               className={cn("h-8 w-full", !active && "bg-accent text-accent-foreground hover:bg-accent/90")}
             >
-              {active ? "Currently managing" : pending === p.id ? "Switching…" : "Switch to this property"}
+              {active ? "Currently managing" : busy ? "Switching…" : "Switch to this property"}
             </Button>
           </li>
         )
