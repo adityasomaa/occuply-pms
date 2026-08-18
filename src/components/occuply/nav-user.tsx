@@ -1,9 +1,8 @@
 "use client"
 
 import Link from "next/link"
-import { BellIcon, EllipsisVerticalIcon, KeyRoundIcon, LogOutIcon, UserRoundIcon } from "lucide-react"
+import { BellIcon, ChevronDownIcon, KeyRoundIcon, LogOutIcon, UserRoundIcon } from "lucide-react"
 
-import { Avatar, AvatarFallback } from "@/components/ui/avatar"
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -23,33 +22,34 @@ export function NavUser({ user }: { user: StaffMember }) {
       <SidebarMenuItem>
         <DropdownMenu>
           <DropdownMenuTrigger
-            render={<SidebarMenuButton size="lg" className="aria-expanded:bg-muted" />}
+            render={
+              <SidebarMenuButton
+                size="lg"
+                className="h-auto gap-3 rounded-xl border border-sidebar-border bg-card p-3 hover:bg-sidebar-accent aria-expanded:bg-sidebar-accent group-data-[collapsible=icon]:border-transparent group-data-[collapsible=icon]:p-0"
+              />
+            }
           >
-            <Avatar className="size-8 rounded-md">
-              <AvatarFallback className="rounded-md bg-foreground text-[0.6875rem] font-semibold text-background">
-                {user.initials}
-              </AvatarFallback>
-            </Avatar>
+            <span className="flex size-9 shrink-0 items-center justify-center rounded-full bg-tile-orange text-tile-orange-fg">
+              <UserRoundIcon className="size-[1.05rem]" strokeWidth={1.9} />
+            </span>
             <div className="grid flex-1 text-left leading-tight">
-              <span className="truncate text-sm font-medium">{user.name}</span>
+              <span className="truncate text-sm font-semibold">{user.name}</span>
               <span className="truncate text-xs text-muted-foreground">{user.role}</span>
             </div>
-            <EllipsisVerticalIcon className="ml-auto size-4 text-muted-foreground" />
+            <ChevronDownIcon className="ml-auto size-4 shrink-0 text-muted-foreground" strokeWidth={2} />
           </DropdownMenuTrigger>
 
           <DropdownMenuContent
             className="min-w-60"
-            side={isMobile ? "bottom" : "right"}
-            align="end"
-            sideOffset={6}
+            side={isMobile ? "bottom" : "top"}
+            align="start"
+            sideOffset={8}
           >
             <DropdownMenuLabel className="p-0 font-normal">
-              <div className="flex items-center gap-2 px-1 py-1.5 text-left">
-                <Avatar className="size-8 rounded-md">
-                  <AvatarFallback className="rounded-md bg-foreground text-[0.6875rem] font-semibold text-background">
-                    {user.initials}
-                  </AvatarFallback>
-                </Avatar>
+              <div className="flex items-center gap-2.5 px-1 py-1.5 text-left">
+                <span className="flex size-9 shrink-0 items-center justify-center rounded-full bg-tile-orange text-tile-orange-fg">
+                  <UserRoundIcon className="size-[1.05rem]" strokeWidth={1.9} />
+                </span>
                 <div className="grid flex-1 leading-tight">
                   <span className="truncate text-sm font-medium">{user.name}</span>
                   <span className="truncate text-xs text-muted-foreground">{user.email}</span>

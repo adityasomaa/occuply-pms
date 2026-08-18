@@ -1,128 +1,127 @@
 "use client"
 
 import * as React from "react"
-import { Area, CartesianGrid, ComposedChart, Line, XAxis, YAxis } from "recharts"
+import { Area, AreaChart, CartesianGrid, XAxis, YAxis } from "recharts"
+import { TrendingDownIcon, TrendingUpIcon } from "lucide-react"
 
-import {
-  ChartContainer,
-  ChartTooltip,
-  ChartTooltipContent,
-  type ChartConfig,
-} from "@/components/ui/chart"
-import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group"
-import { Panel } from "@/components/occuply/primitives"
-import { moneyShort, shortDate } from "@/lib/format"
+import { ChartContainer, ChartTooltip, type ChartConfig } from "@/components/ui/chart"
+import { money, moneyAxis, shortDate } from "@/lib/format"
 import type { DailyMetric } from "@/lib/types"
+import { cn } from "@/lib/utils"
 
 const config = {
   revenue: { label: "Room revenue", color: "var(--chart-1)" },
-  occupancy: { label: "Occupancy", color: "var(--chart-3)" },
 } satisfies ChartConfig
 
 const RANGES = [
-  { value: "90d", label: "90 days", days: 90 },
-  { value: "30d", label: "30 days", days: 30 },
-  { value: "7d", label: "7 days", days: 7 },
+  { value: "30", label: "This Month" },
+  { value: "7", label: "This Week" },
+  { value: "90", label: "Last 3 Months" },
 ]
 
-export function PerformanceChart({ metrics }: { metrics: DailyMetric[] }) {
-  const [range, setRange] = React.useState("30d")
-  const days = RANGES.find((r) => r.value === range)?.days ?? 30
+/** Matches the reference: headline total on the left, range picker on the
+ *  right, and a single orange area beneath. */
+export function RevenueOverview({ metrics }: { metrics: DailyMetric[] }) {
+  const [range, setRange] = React.useState("30")
+  const days = Number(range)
+
   const data = React.useMemo(() => metrics.slice(-days), [metrics, days])
+  const previous = React.useMemo(() => metrics.slice(-days * 2, -days), [metrics, days])
+
+  const total = data.reduce((s, m) => s + m.revenue, 0)
+  const prevTotal = previous.reduce((s, m) => s + m.revenue, 0)
+  const delta = prevTotal === 0 ? 0 : ((total - prevTotal) / prevTotal) * 100
+  const up = delta >= 0
+  const Arrow = up ? TrendingUpIcon : TrendingDownIcon
 
   return (
-    <Panel
-      title="Revenue and occupancy"
-      description="Room revenue against occupancy, net of cancellations"
-      action={
-        <ToggleGroup
-          multiple={false}
-          value={[range]}
-          onValueChange={(v) => setRange(v[0] ?? "30d")}
-          variant="outline"
-          size="sm"
-          className="*:data-[slot=toggle-group-item]:px-3!"
+    <section className="rounded-2xl border border-border bg-card p-5">
+      <header className="flex flex-wrap items-center justify-between gap-3">
+        <h2 className="text-base font-semibold tracking-tight">Revenue Overview</h2>
+        <div className="relative">
+          <select
+            value={range}
+            onChange={(e) => setRange(e.target.value)}
+            aria-label="Revenue period"
+            className="ease-occuply h-9 appearance-none rounded-lg border border-border bg-card pl-3.5 pr-9 text-xs font-medium outline-none transition-colors duration-150 hover:bg-muted focus-visible:ring-2 focus-visible:ring-ring"
+          >
+            {RANGES.map((r) => (
+              <option key={r.value} value={r.value}>
+                {r.label}
+              </option>
+            ))}
+          </select>
+          <svg
+            viewBox="0 0 12 12"
+            aria-hidden
+            className="pointer-events-none absolute right-3 top-1/2 size-3 -translate-y-1/2 text-muted-foreground"
+          >
+            <path d="M2.5 4.5 6 8l3.5-3.5" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+          </svg>
+        </div>
+      </header>
+
+      <div className="mt-4">
+        <p className="text-[0.8125rem] text-muted-foreground">Total Revenue</p>
+        <p className="num mt-0.5 text-[1.75rem] font-bold leading-tight tracking-tight">{money(total)}</p>
+        <p
+          className={cn(
+            "num mt-1 flex items-center gap-1 text-xs font-medium",
+            up ? "text-status-ok" : "text-destructive",
+          )}
         >
-          {RANGES.map((r) => (
-            <ToggleGroupItem key={r.value} value={r.value} className="text-xs">
-              {r.label}
-            </ToggleGroupItem>
-          ))}
-        </ToggleGroup>
-      }
-      bodyClassName="px-1 pb-2 pt-4 sm:px-3"
-    >
-      <ChartContainer config={config} className="aspect-auto h-[248px] w-full">
-        <ComposedChart data={data} margin={{ left: 4, right: 4, top: 4 }}>
+          <Arrow className="size-3.5" strokeWidth={2.25} />
+          {Math.abs(delta).toFixed(0)}% from last period
+        </p>
+      </div>
+
+      <ChartContainer config={config} className="mt-3 aspect-auto h-[230px] w-full">
+        <AreaChart data={data} margin={{ left: 4, right: 8, top: 8, bottom: 0 }}>
           <defs>
             <linearGradient id="occuplyRevenueFill" x1="0" y1="0" x2="0" y2="1">
-              <stop offset="0%" stopColor="var(--color-revenue)" stopOpacity={0.42} />
-              <stop offset="95%" stopColor="var(--color-revenue)" stopOpacity={0.02} />
+              <stop offset="0%" stopColor="var(--color-revenue)" stopOpacity={0.28} />
+              <stop offset="100%" stopColor="var(--color-revenue)" stopOpacity={0.02} />
             </linearGradient>
           </defs>
-          <CartesianGrid vertical={false} strokeDasharray="3 3" />
+          <CartesianGrid vertical={false} strokeDasharray="4 4" className="stroke-border" />
           <XAxis
             dataKey="date"
             tickLine={false}
             axisLine={false}
-            tickMargin={10}
-            minTickGap={28}
+            tickMargin={12}
+            minTickGap={40}
             tick={{ fontSize: 11 }}
             tickFormatter={(v: string) => shortDate(v)}
           />
           <YAxis
-            yAxisId="revenue"
             tickLine={false}
             axisLine={false}
-            width={54}
+            width={52}
             tick={{ fontSize: 11 }}
-            tickFormatter={(v: number) => moneyShort(v)}
-          />
-          <YAxis
-            yAxisId="occupancy"
-            orientation="right"
-            tickLine={false}
-            axisLine={false}
-            width={38}
-            domain={[0, 100]}
-            tick={{ fontSize: 11 }}
-            tickFormatter={(v: number) => `${v}%`}
+            tickFormatter={(v: number) => moneyAxis(v)}
           />
           <ChartTooltip
-            cursor={{ stroke: "var(--border)", strokeWidth: 1 }}
-            content={
-              <ChartTooltipContent
-                indicator="line"
-                labelFormatter={(v) => shortDate(String(v))}
-                formatter={(value, name) =>
-                  name === "occupancy" ? (
-                    <span className="num">{Number(value).toFixed(1)}% occupancy</span>
-                  ) : (
-                    <span className="num">{moneyShort(Number(value))} revenue</span>
-                  )
-                }
-              />
-            }
+            cursor={{ stroke: "var(--accent)", strokeWidth: 1, strokeDasharray: "4 4" }}
+            content={({ active, payload, label }) => {
+              if (!active || !payload?.length) return null
+              return (
+                <div className="rounded-lg border border-border bg-popover px-3 py-2 shadow-md">
+                  <p className="text-xs text-muted-foreground">{shortDate(String(label))}</p>
+                  <p className="num text-sm font-semibold">{money(Number(payload[0].value))}</p>
+                </div>
+              )
+            }}
           />
           <Area
-            yAxisId="revenue"
             dataKey="revenue"
             type="monotone"
             fill="url(#occuplyRevenueFill)"
             stroke="var(--color-revenue)"
-            strokeWidth={2}
+            strokeWidth={2.4}
+            activeDot={{ r: 5, strokeWidth: 2, className: "stroke-card fill-accent" }}
           />
-          <Line
-            yAxisId="occupancy"
-            dataKey="occupancy"
-            type="monotone"
-            stroke="var(--color-occupancy)"
-            strokeWidth={1.5}
-            strokeDasharray="4 3"
-            dot={false}
-          />
-        </ComposedChart>
+        </AreaChart>
       </ChartContainer>
-    </Panel>
+    </section>
   )
 }

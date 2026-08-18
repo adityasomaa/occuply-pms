@@ -1,20 +1,34 @@
 import Image from "next/image"
 import { cn } from "@/lib/utils"
 
+const SIZES = {
+  sm: "h-6",
+  md: "h-7",
+  lg: "h-9",
+} as const
+
 /** The lockup ships as supplied artwork. Per the brand guidelines the icon and
  *  wordmark are never rearranged, recoloured or redrawn, so both variants are
  *  the original files and only visibility is swapped between themes.
  *  Both are exported at 305x96, which covers a 3x display at the rendered size. */
-export function LogoLockup({ className, priority }: { className?: string; priority?: boolean }) {
+export function LogoLockup({
+  className,
+  priority,
+  size = "md",
+}: {
+  className?: string
+  priority?: boolean
+  size?: keyof typeof SIZES
+}) {
   return (
-    <span className={cn("inline-flex items-center", className)}>
+    <span className={cn("inline-flex items-center", SIZES[size], className)}>
       <Image
         src="/logo-full.png"
         alt="Occuply"
         width={305}
         height={96}
         priority={priority}
-        className="h-7 w-auto dark:hidden"
+        className="h-full w-auto dark:hidden"
       />
       <Image
         src="/logo-full-white.png"
@@ -23,7 +37,7 @@ export function LogoLockup({ className, priority }: { className?: string; priori
         width={305}
         height={96}
         priority={priority}
-        className="hidden h-7 w-auto dark:block"
+        className="hidden h-full w-auto dark:block"
       />
     </span>
   )

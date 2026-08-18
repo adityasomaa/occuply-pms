@@ -30,6 +30,21 @@ export function moneyShort(value: number): string {
   return `${sign}Rp${Math.round(abs)}`
 }
 
+/** Axis ticks want the shortest readable form: "30jt", "1,2M". */
+export function moneyAxis(value: number): string {
+  const abs = Math.abs(value)
+  if (abs === 0) return "0"
+  const sign = value < 0 ? "-" : ""
+  for (const [step, suffix] of idrCompactUnits) {
+    if (abs >= step) {
+      const scaled = abs / step
+      const digits = scaled >= 10 ? 0 : 1
+      return `${sign}${scaled.toFixed(digits).replace(".", ",")}${suffix}`
+    }
+  }
+  return `${sign}${Math.round(abs)}`
+}
+
 export function percent(value: number, digits = 1): string {
   return `${value.toFixed(digits)}%`
 }
@@ -95,6 +110,17 @@ export function relativeDays(fromISO: string, toISOStr: string): string {
 export function timeOfDay(isoStamp: string): string {
   const t = isoStamp.split("T")[1]
   return t ? t.slice(0, 5) : ""
+}
+
+/** Balinese names carry a leading birth-order or gender marker ("Ni", "I",
+ *  "Ida"). Greeting someone as "Ni" would be wrong, so skip it and use the
+ *  first real given name. */
+const NAME_MARKERS = new Set(["ni", "i", "ida", "anak", "agung", "gusti"])
+
+export function greetingName(name: string): string {
+  const parts = name.split(/\s+/).filter(Boolean)
+  const first = parts.find((p) => !NAME_MARKERS.has(p.toLowerCase()))
+  return first ?? parts[0] ?? name
 }
 
 export function initials(name: string): string {

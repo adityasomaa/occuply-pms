@@ -57,6 +57,15 @@
   --color-status-risk: var(--status-risk);
   --color-status-info: var(--status-info);
   --color-status-idle: var(--status-idle);
+  --color-tile-orange: var(--tile-orange);
+  --color-tile-orange-fg: var(--tile-orange-fg);
+  --color-tile-green: var(--tile-green);
+  --color-tile-green-fg: var(--tile-green-fg);
+  --color-tile-blue: var(--tile-blue);
+  --color-tile-blue-fg: var(--tile-blue-fg);
+  --color-tile-violet: var(--tile-violet);
+  --color-tile-violet-fg: var(--tile-violet-fg);
+  --color-track: var(--track);
 
   --radius-sm: calc(var(--radius) * 0.55);
   --radius-md: calc(var(--radius) * 0.75);
@@ -68,10 +77,10 @@
 }
 
 :root {
-  --radius: 0.7rem;
+  --radius: 0.625rem;
 
   /* Soft Gray #F5F5F3 is the working surface, White is the raised plane. */
-  --background: oklch(0.9752 0.0032 62);
+  --background: oklch(0.9835 0.0022 62);
   --foreground: oklch(0.2046 0.006 50.5);
 
   --card: oklch(1 0 0);
@@ -83,21 +92,21 @@
   --primary: oklch(0.2046 0.008 50.5);
   --primary-foreground: oklch(0.9885 0.003 62);
 
-  --secondary: oklch(0.955 0.0045 62);
+  --secondary: oklch(0.966 0.003 62);
   --secondary-foreground: oklch(0.2046 0.008 50.5);
 
-  --muted: oklch(0.955 0.0045 62);
-  --muted-foreground: oklch(0.5173 0.0095 50.5);
+  --muted: oklch(0.966 0.003 62);
+  --muted-foreground: oklch(0.556 0.009 50.5);
 
   /* Primary Orange #FF7A00 */
   --accent: oklch(0.723 0.1897 50.54);
   --accent-foreground: oklch(0.145 0.02 50.5);
-  --accent-soft: oklch(0.945 0.038 62);
+  --accent-soft: oklch(0.949 0.0345 62);
   --accent-ring: oklch(0.723 0.1897 50.54 / 45%);
 
   --destructive: oklch(0.582 0.204 26.5);
-  --border: oklch(0.899 0.005 62);
-  --input: oklch(0.899 0.005 62);
+  --border: oklch(0.9265 0.0035 62);
+  --input: oklch(0.9265 0.0035 62);
   --ring: oklch(0.723 0.1897 50.54);
 
   /* Charts: orange leads, then a warm-to-cool descent so series stay
@@ -114,13 +123,25 @@
   --status-info: oklch(0.58 0.096 240);
   --status-idle: oklch(0.5173 0.0095 50.5);
 
+
+  /* Pastel tile fills behind the metric-card icons. */
+  --tile-orange: oklch(0.948 0.038 62);
+  --tile-orange-fg: oklch(0.665 0.185 45);
+  --tile-green: oklch(0.951 0.032 158);
+  --tile-green-fg: oklch(0.556 0.118 156);
+  --tile-blue: oklch(0.948 0.028 250);
+  --tile-blue-fg: oklch(0.548 0.132 253);
+  --tile-violet: oklch(0.945 0.032 300);
+  --tile-violet-fg: oklch(0.552 0.158 296);
+  --track: oklch(0.936 0.006 62);
+
   --sidebar: oklch(1 0 0);
   --sidebar-foreground: oklch(0.2046 0.006 50.5);
   --sidebar-primary: oklch(0.723 0.1897 50.54);
   --sidebar-primary-foreground: oklch(0.145 0.02 50.5);
-  --sidebar-accent: oklch(0.958 0.012 62);
+  --sidebar-accent: oklch(0.968 0.006 62);
   --sidebar-accent-foreground: oklch(0.2046 0.008 50.5);
-  --sidebar-border: oklch(0.912 0.005 62);
+  --sidebar-border: oklch(0.934 0.0035 62);
   --sidebar-ring: oklch(0.723 0.1897 50.54);
 }
 
@@ -164,6 +185,17 @@
   --status-risk: oklch(0.68 0.182 24);
   --status-info: oklch(0.7 0.09 240);
   --status-idle: oklch(0.66 0.011 50.5);
+
+
+  --tile-orange: oklch(0.315 0.048 48);
+  --tile-orange-fg: oklch(0.775 0.155 55);
+  --tile-green: oklch(0.298 0.042 158);
+  --tile-green-fg: oklch(0.735 0.122 158);
+  --tile-blue: oklch(0.298 0.04 250);
+  --tile-blue-fg: oklch(0.732 0.108 252);
+  --tile-violet: oklch(0.3 0.044 298);
+  --tile-violet-fg: oklch(0.738 0.13 296);
+  --track: oklch(0.288 0.007 50.5);
 
   --sidebar: oklch(0.1935 0.006 50.5);
   --sidebar-foreground: oklch(0.955 0.004 62);

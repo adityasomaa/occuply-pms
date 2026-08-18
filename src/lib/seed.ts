@@ -536,24 +536,38 @@ function holidayFor(iso: string): string | undefined {
   return HOLIDAYS[iso.slice(5)]
 }
 
-function buildRooms(propertyId: string, roomTypes: RoomType[], anchor: string): Room[] {
+function buildRooms(
+  propertyId: string,
+  roomTypes: RoomType[],
+  anchor: string,
+  soldByType: Map<RoomTypeId, number>,
+): Room[] {
   const rnd = mulberry32(hash(propertyId + "rooms" + anchor))
   const seeds = ROOM_TYPE_SEEDS[propertyId]
   const rooms: Room[] = []
   const guestPool = [...GUESTS]
 
+  // One unit across the whole property is held back for maintenance.
+  let oooBudget = 1
+
   roomTypes.forEach((rt, ti) => {
     const seed = seeds[ti]
+    const sold = Math.min(rt.count, soldByType.get(rt.id) ?? 0)
+    // A fifth of tonight's occupied rooms check out in the morning.
+    const departing = sold === 0 ? 0 : Math.max(1, Math.round(sold * 0.2))
+
     for (let i = 0; i < rt.count; i++) {
       const number = `${seed.prefix}-${seed.floor}${String(i + 1).padStart(2, "0")}`
       const roll = rnd()
       let status: RoomStatus
-      if (roll < 0.58) status = "occupied"
-      else if (roll < 0.68) status = "departing"
-      else if (roll < 0.78) status = "arriving"
-      else if (roll < 0.88) status = "vacant-clean"
-      else if (roll < 0.96) status = "vacant-dirty"
-      else status = "out-of-order"
+      if (i < sold - departing) status = "occupied"
+      else if (i < sold) status = "departing"
+      else if (oooBudget > 0 && roll > 0.86) {
+        status = "out-of-order"
+        oooBudget -= 1
+      } else if (roll < 0.34) status = "arriving"
+      else if (roll < 0.72) status = "vacant-clean"
+      else status = "vacant-dirty"
 
       const occupied = status === "occupied" || status === "departing"
       const guest = occupied ? guestPool[Math.floor(rnd() * guestPool.length)] : undefined
@@ -1141,7 +1155,11 @@ export function getSnapshot(propertyId: string, anchor: string): PropertySnapsho
 
   const property = getProperty(propertyId)
   const roomTypes = buildRoomTypes(property.id)
-  const rooms = buildRooms(property.id, roomTypes, anchor)
+  const inventory = buildInventory(property.id, roomTypes, anchor)
+  const soldToday = new Map<RoomTypeId, number>(
+    inventory.filter((i) => i.date === anchor).map((i) => [i.roomTypeId, i.sold]),
+  )
+  const rooms = buildRooms(property.id, roomTypes, anchor, soldToday)
   const channels = buildChannels(property.id, roomTypes, anchor)
   const bookings = buildBookings(property.id, roomTypes, rooms, channels, anchor)
   const staff = STAFF_SEEDS.map((s, i) => ({
@@ -1154,7 +1172,6 @@ export function getSnapshot(propertyId: string, anchor: string): PropertySnapsho
   const tickets = buildTickets(property.id, rooms, staff, anchor)
   const ratePlans = buildRatePlans(property.id)
   const pricingRules = buildPricingRules(property.id)
-  const inventory = buildInventory(property.id, roomTypes, anchor)
   const metrics = buildMetrics(property.id, roomTypes, anchor)
 
   const last30 = metrics.slice(-30)

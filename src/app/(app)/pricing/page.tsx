@@ -1,5 +1,11 @@
 import type { Metadata } from "next"
-import { SettingsIcon } from "lucide-react"
+import {
+  SettingsIcon,
+  SlidersHorizontalIcon,
+  SparklesIcon,
+  TrendingUpIcon,
+  WalletIcon,
+} from "lucide-react"
 
 import { Meter, Panel, StatStrip } from "@/components/occuply/primitives"
 import { PricingConsole } from "@/components/occuply/pricing-console"
@@ -37,7 +43,7 @@ export default async function PricingPage() {
   })
 
   return (
-    <>
+    <div className="flex flex-1 flex-col gap-5 p-5 lg:p-7">
       <SiteHeader
         title="Dynamic pricing"
         subtitle={`Rules, guardrails and recommendations · ${property.name}`}
@@ -49,66 +55,62 @@ export default async function PricingPage() {
           Engine settings
         </Button>
       </SiteHeader>
+      <StatStrip
+        stats={[
+          { label: "Active rules", icon: SlidersHorizontalIcon, tone: "orange", value: `${activeRules.length}/${pricingRules.length}`, hint: `${fires30d} rate changes fired in 30 days` },
+          {
+            label: "Revenue impact · 30d", icon: WalletIcon, tone: "green",
+            value: moneyShort(impact30d),
+            hint: "Attributed to automatic repricing",
+          },
+          {
+            label: "Open recommendations", icon: SparklesIcon, tone: "violet",
+            value: String(suggestions.length),
+            hint: suggestions.length ? `Worth roughly ${moneyShort(upside)}` : "Nothing to review",
+          },
+          { label: "RevPAR · 30d", icon: TrendingUpIcon, tone: "blue", value: moneyShort(kpi.revpar), delta: kpi.revparDelta, hint: "The number this engine moves" },
+        ]}
+      />
 
-      <div className="flex flex-1 flex-col gap-4 p-3 lg:p-5">
-        <StatStrip
-          stats={[
-            { label: "Active rules", value: `${activeRules.length}/${pricingRules.length}`, hint: `${fires30d} rate changes fired in 30 days` },
-            {
-              label: "Revenue impact · 30d",
-              value: moneyShort(impact30d),
-              hint: "Attributed to automatic repricing",
-              emphasis: true,
-            },
-            {
-              label: "Open recommendations",
-              value: String(suggestions.length),
-              hint: suggestions.length ? `Worth roughly ${moneyShort(upside)}` : "Nothing to review",
-            },
-            { label: "RevPAR · 30d", value: moneyShort(kpi.revpar), delta: kpi.revparDelta, hint: "The number this engine moves" },
-          ]}
-        />
+      <PricingConsole rules={pricingRules} suggestions={suggestions} />
 
-        <PricingConsole rules={pricingRules} suggestions={suggestions} />
+      <Panel
+        title="Rate guardrails"
+        description="Where the average rate for the next fourteen nights sits between your floor and ceiling"
+        bodyClassName="divide-y divide-border"
+      >
+        {guardrails.map(({ rt, avg, position }) => (
+          <div key={rt.id} className="flex flex-wrap items-center gap-x-4 gap-y-2 px-4 py-3 lg:px-5">
+            <div className="min-w-[160px] flex-1">
+              <p className="truncate text-sm font-medium">{rt.name}</p>
+              <p className="num truncate text-xs text-muted-foreground">
+                avg {money(Math.round(avg))} · {percent(position, 0)} of the band
+              </p>
+            </div>
 
-        <Panel
-          title="Rate guardrails"
-          description="Where the average rate for the next fourteen nights sits between your floor and ceiling"
-          bodyClassName="divide-y divide-border"
-        >
-          {guardrails.map(({ rt, avg, position }) => (
-            <div key={rt.id} className="flex flex-wrap items-center gap-x-4 gap-y-2 px-4 py-3 lg:px-5">
-              <div className="min-w-[160px] flex-1">
-                <p className="truncate text-sm font-medium">{rt.name}</p>
-                <p className="num truncate text-xs text-muted-foreground">
-                  avg {money(Math.round(avg))} · {percent(position, 0)} of the band
-                </p>
-              </div>
-
-              <div className="flex min-w-[220px] flex-[2] items-center gap-2.5">
-                <span className="num w-16 shrink-0 text-right text-xs text-muted-foreground">
-                  {moneyShort(rt.floorRate)}
-                </span>
-                <span className="relative flex-1">
-                  <Meter value={position} tone={position > 82 ? "warn" : position < 18 ? "risk" : "accent"} />
-                  <span
-                    className="absolute -top-0.5 size-2.5 -translate-x-1/2 rounded-full border-2 border-card bg-foreground"
-                    style={{ left: `${Math.max(2, Math.min(98, position))}%` }}
-                    aria-hidden
-                  />
-                </span>
-                <span className="num w-16 shrink-0 text-xs text-muted-foreground">
-                  {moneyShort(rt.ceilingRate)}
-                </span>
-              </div>
-
-              <span className="num w-20 shrink-0 text-right text-sm font-semibold">
-                {moneyShort(avg)}
+            <div className="flex min-w-[220px] flex-[2] items-center gap-2.5">
+              <span className="num w-16 shrink-0 text-right text-xs text-muted-foreground">
+                {moneyShort(rt.floorRate)}
+              </span>
+              <span className="relative flex-1">
+                <Meter value={position} tone={position > 82 ? "warn" : position < 18 ? "risk" : "accent"} />
+                <span
+                  className="absolute -top-0.5 size-2.5 -translate-x-1/2 rounded-full border-2 border-card bg-foreground"
+                  style={{ left: `${Math.max(2, Math.min(98, position))}%` }}
+                  aria-hidden
+                />
+              </span>
+              <span className="num w-16 shrink-0 text-xs text-muted-foreground">
+                {moneyShort(rt.ceilingRate)}
               </span>
             </div>
-          ))}
-        </Panel>
-      </div>
-    </>
+
+            <span className="num w-20 shrink-0 text-right text-sm font-semibold">
+              {moneyShort(avg)}
+            </span>
+          </div>
+        ))}
+      </Panel>
+    </div>
   )
 }

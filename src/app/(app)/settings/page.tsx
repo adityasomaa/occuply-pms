@@ -19,21 +19,18 @@ export default async function SettingsPage({ searchParams }: PageProps<"/setting
   const tab = TABS.includes(raw ?? "") ? (raw as string) : "profile"
 
   return (
-    <>
+    <div className="flex flex-1 flex-col gap-5 p-5 lg:p-7">
       <SiteHeader
         title="User & settings"
         subtitle={`Account, team and property configuration · ${snap.property.name}`}
         today={anchor}
       />
-
-      <div className="flex flex-1 flex-col gap-4 p-3 lg:p-5">
-        <SettingsTabs
-          user={snap.staff[0]}
-          staff={snap.staff}
-          property={snap.property}
-          initialTab={tab}
-        />
-      </div>
-    </>
+      <SettingsTabs
+        user={snap.staff[0]}
+        staff={snap.staff}
+        property={snap.property}
+        initialTab={tab}
+      />
+    </div>
   )
 }

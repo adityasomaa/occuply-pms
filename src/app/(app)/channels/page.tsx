@@ -1,5 +1,11 @@
 import type { Metadata } from "next"
-import { PlusIcon } from "lucide-react"
+import {
+  CalendarCheckIcon,
+  GlobeIcon,
+  PlusIcon,
+  Share2Icon,
+  WalletIcon,
+} from "lucide-react"
 
 import { ChannelsBoard } from "@/components/occuply/channels-board"
 import { Panel, StatStrip } from "@/components/occuply/primitives"
@@ -32,7 +38,7 @@ export default async function ChannelsPage() {
   const direct = channels.find((c) => c.kind === "Direct")
 
   return (
-    <>
+    <div className="flex flex-1 flex-col gap-5 p-5 lg:p-7">
       <SiteHeader
         title="Channel setup"
         subtitle={`Distribution and mapping · ${property.name}`}
@@ -44,55 +50,51 @@ export default async function ChannelsPage() {
           Connect channel
         </Button>
       </SiteHeader>
+      <StatStrip
+        stats={[
+          {
+            label: "Live channels", icon: Share2Icon, tone: "orange",
+            value: `${live.length}/${channels.length}`,
+            hint: errors.length ? `${errors.length} need attention` : "All connections healthy",
+          },
+          { label: "Bookings · 30d", icon: CalendarCheckIcon, tone: "blue", value: String(bookings), hint: "Across every connected channel" },
+          {
+            label: "Commission paid · 30d", icon: WalletIcon, tone: "green",
+            value: moneyShort(commissionPaid),
+            hint: `${percent((commissionPaid / Math.max(1, revenue)) * 100)} of channel revenue`,
+          },
+          {
+            label: "Direct share", icon: GlobeIcon, tone: "violet",
+            value: percent(((direct?.bookings30d ?? 0) / Math.max(1, bookings)) * 100),
+            hint: `${money(direct?.revenue30d ?? 0)} booked commission-light`,
+          },
+        ]}
+      />
 
-      <div className="flex flex-1 flex-col gap-4 p-3 lg:p-5">
-        <StatStrip
-          stats={[
-            {
-              label: "Live channels",
-              value: `${live.length}/${channels.length}`,
-              hint: errors.length ? `${errors.length} need attention` : "All connections healthy",
-            },
-            { label: "Bookings · 30d", value: String(bookings), hint: "Across every connected channel" },
-            {
-              label: "Commission paid · 30d",
-              value: moneyShort(commissionPaid),
-              hint: `${percent((commissionPaid / Math.max(1, revenue)) * 100)} of channel revenue`,
-            },
-            {
-              label: "Direct share",
-              value: percent(((direct?.bookings30d ?? 0) / Math.max(1, bookings)) * 100),
-              hint: `${money(direct?.revenue30d ?? 0)} booked commission-light`,
-              emphasis: true,
-            },
-          ]}
-        />
+      <ChannelsBoard channels={channels} roomTypes={roomTypes} />
 
-        <ChannelsBoard channels={channels} roomTypes={roomTypes} />
-
-        <Panel
-          title="Available to connect"
-          description="Channels Occuply supports that you have not enabled yet"
-          bodyClassName="divide-y divide-border"
-        >
-          {AVAILABLE.map((a) => (
-            <div key={a.name} className="flex flex-wrap items-center gap-3 px-4 py-3 lg:px-5">
-              <span className="flex size-8 shrink-0 items-center justify-center rounded-md border border-border bg-muted text-[0.625rem] font-semibold text-muted-foreground">
-                {a.name.slice(0, 2).toUpperCase()}
-              </span>
-              <div className="min-w-0 flex-1">
-                <p className="truncate text-sm font-medium">{a.name}</p>
-                <p className="truncate text-xs text-muted-foreground">
-                  {a.kind} · {a.note}
-                </p>
-              </div>
-              <Button variant="outline" size="sm" className="h-7 shrink-0 text-xs">
-                Connect
-              </Button>
+      <Panel
+        title="Available to connect"
+        description="Channels Occuply supports that you have not enabled yet"
+        bodyClassName="divide-y divide-border"
+      >
+        {AVAILABLE.map((a) => (
+          <div key={a.name} className="flex flex-wrap items-center gap-3 px-4 py-3 lg:px-5">
+            <span className="flex size-8 shrink-0 items-center justify-center rounded-md border border-border bg-muted text-[0.625rem] font-semibold text-muted-foreground">
+              {a.name.slice(0, 2).toUpperCase()}
+            </span>
+            <div className="min-w-0 flex-1">
+              <p className="truncate text-sm font-medium">{a.name}</p>
+              <p className="truncate text-xs text-muted-foreground">
+                {a.kind} · {a.note}
+              </p>
             </div>
-          ))}
-        </Panel>
-      </div>
-    </>
+            <Button variant="outline" size="sm" className="h-7 shrink-0 text-xs">
+              Connect
+            </Button>
+          </div>
+        ))}
+      </Panel>
+    </div>
   )
 }
