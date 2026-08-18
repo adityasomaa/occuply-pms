@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="public/icon.png" alt="Occuply" width="88" height="88">
+  <img src="public/logo-mark.png" alt="Occuply" width="88" height="88">
 </p>
 
 <h1 align="center">Occuply</h1>

@@ -32,7 +32,7 @@ export function LogoLockup({ className, priority }: { className?: string; priori
 export function LogoMark({ size = 28, className }: { size?: number; className?: string }) {
   return (
     <Image
-      src="/icon.png"
+      src="/logo-mark.png"
       alt=""
       aria-hidden
       width={128}
