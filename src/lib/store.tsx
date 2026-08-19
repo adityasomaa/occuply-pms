@@ -33,7 +33,7 @@ export interface Mutable {
 
 export type Action =
   | { type: "booking:update"; id: string; patch: Partial<Booking> }
-  | { type: "booking:move"; id: string; checkIn: string; roomNumber?: string }
+  | { type: "booking:move"; id: string; checkIn: string; roomNumber?: string; roomTypeId?: string }
   | { type: "booking:create"; booking: Booking }
   | { type: "booking:cancel"; id: string }
   | { type: "booking:delete"; id: string }
@@ -72,6 +72,7 @@ function reduce(state: Mutable, action: Action): Mutable {
             checkIn: action.checkIn,
             checkOut: shiftISO(action.checkIn, nights),
             roomNumber: action.roomNumber ?? b.roomNumber,
+            roomTypeId: action.roomTypeId ?? b.roomTypeId,
           }
         }),
       }
@@ -114,11 +115,18 @@ function storageKey(propertyId: string) {
   return `occuply.state.${propertyId}`
 }
 
+export type SyncState = "synced" | "syncing"
+
 class OccuplyStore {
   private state: Mutable
   private readonly seed: Mutable
   private readonly listeners = new Set<() => void>()
   private loaded = false
+  // Every edit pushes to the connected channels. The status is modelled here
+  // rather than behind a button, because there is nothing for a person to
+  // decide: a change is always meant to go out.
+  private sync: SyncState = "synced"
+  private syncTimer: ReturnType<typeof setTimeout> | null = null
 
   constructor(
     readonly propertyId: string,
@@ -151,7 +159,21 @@ class OccuplyStore {
     if (next === this.state) return
     this.state = next
     this.write(next)
+    this.markSyncing()
     this.emit()
+  }
+
+  getSyncSnapshot = () => this.sync
+  getServerSyncSnapshot = (): SyncState => "synced"
+
+  private markSyncing() {
+    this.sync = "syncing"
+    if (this.syncTimer) clearTimeout(this.syncTimer)
+    this.syncTimer = setTimeout(() => {
+      this.sync = "synced"
+      this.syncTimer = null
+      this.emit()
+    }, 900)
   }
 
   reset = () => {
@@ -261,6 +283,19 @@ export function useStore(): StoreValue {
     }),
     [state, store],
   )
+}
+
+/** Distribution status for the whole property. Reads the same store, so it
+ *  reflects any edit made anywhere in the app. */
+export function useSyncStatus(): SyncState {
+  const store = React.useContext(StoreContext)
+  const subscribe = React.useCallback(
+    (cb: () => void) => (store ? store.subscribe(cb) : () => {}),
+    [store],
+  )
+  const get = React.useCallback((): SyncState => (store ? store.getSyncSnapshot() : "synced"), [store])
+  const getServer = React.useCallback((): SyncState => "synced", [])
+  return React.useSyncExternalStore(subscribe, get, getServer)
 }
 
 /* ------------------------------ derived helpers ---------------------------- */

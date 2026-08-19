@@ -2,6 +2,7 @@ import * as React from "react"
 
 import { GlobalSearch } from "@/components/occuply/global-search"
 import { NotificationBell } from "@/components/occuply/notification-bell"
+import { SyncIndicator } from "@/components/occuply/sync-indicator"
 import { ThemeToggle } from "@/components/occuply/theme-toggle"
 import { SidebarTrigger } from "@/components/ui/sidebar"
 
@@ -36,6 +37,7 @@ export function PageHeading({
 
       <div className="flex shrink-0 items-center gap-1.5 sm:gap-2.5">
         {children}
+        <SyncIndicator />
         <GlobalSearch />
         <ThemeToggle />
         <NotificationBell />

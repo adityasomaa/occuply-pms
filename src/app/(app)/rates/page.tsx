@@ -9,7 +9,7 @@ import {
 import { Panel, StatStrip, StatusDot } from "@/components/occuply/primitives"
 import { RatePlansTable } from "@/components/occuply/rate-plans"
 import { SiteHeader } from "@/components/occuply/site-header"
-import { NewRatePlanButton, ResyncRatesButton } from "@/components/occuply/action-buttons"
+import { NewRatePlanButton } from "@/components/occuply/action-buttons"
 import { activePropertyId, allProperties } from "@/lib/property-cookie"
 import { addDays, getSnapshot, today } from "@/lib/seed"
 import { money, moneyShort, percent, shortDate, weekday } from "@/lib/format"
@@ -154,7 +154,6 @@ export default async function RatesPage() {
                       : "Priced above the comp set median, which suppresses conversion on this channel."}
                   </p>
                 </div>
-                <ResyncRatesButton />
               </li>
             ))}
           </ul>

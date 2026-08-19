@@ -2,7 +2,7 @@
 
 import * as React from "react"
 import { toast } from "sonner"
-import { PlugZapIcon, PlusIcon, RefreshCwIcon, SettingsIcon } from "lucide-react"
+import { PlugZapIcon, PlusIcon, SettingsIcon } from "lucide-react"
 
 import { Button } from "@/components/ui/button"
 import { cn } from "@/lib/utils"
@@ -47,27 +47,6 @@ export function ConnectChannelButton({
     >
       {variant === "primary" ? <PlusIcon className="size-3.5" strokeWidth={2.25} /> : null}
       {busy ? "Opening…" : name ? "Connect" : "Connect channel"}
-    </Button>
-  )
-}
-
-export function ResyncRatesButton() {
-  const [busy, setBusy] = React.useState(false)
-
-  function run() {
-    setBusy(true)
-    window.setTimeout(() => {
-      setBusy(false)
-      toast.success("Rates pushed to every connected channel", {
-        description: "Sixty nights of availability and pricing re-sent. Parity re-checked.",
-      })
-    }, 1200)
-  }
-
-  return (
-    <Button variant="outline" size="sm" className="h-7 shrink-0 gap-1.5 text-xs" disabled={busy} onClick={run}>
-      <RefreshCwIcon className={cn("size-3", busy && "animate-spin")} />
-      {busy ? "Syncing…" : "Resync rates"}
     </Button>
   )
 }

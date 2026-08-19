@@ -9,10 +9,10 @@ const SIZES = {
   lg: "h-12",
 } as const
 
-/** The lockup ships as supplied artwork. Per the brand guidelines the icon and
- *  wordmark are never rearranged, recoloured or redrawn, so both variants are
- *  the original files and only visibility is swapped between themes.
- *  Both are exported at 305x96, which covers a 3x display at the rendered size. */
+/** The lockup ships as supplied artwork, unchanged in either theme: per the
+ *  brand guidelines the icon and wordmark are never rearranged, recoloured or
+ *  redrawn. Exported at 610x192, which covers a 3x display at the rendered
+ *  size. */
 export function LogoLockup({
   className,
   priority,
@@ -30,16 +30,7 @@ export function LogoLockup({
         width={610}
         height={192}
         priority={priority}
-        className="h-full w-auto dark:hidden"
-      />
-      <Image
-        src="/logo-full-white.png"
-        alt=""
-        aria-hidden
-        width={610}
-        height={192}
-        priority={priority}
-        className="hidden h-full w-auto dark:block"
+        className="h-full w-auto"
       />
     </span>
   )

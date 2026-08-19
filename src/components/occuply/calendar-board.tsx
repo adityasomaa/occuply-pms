@@ -88,13 +88,20 @@ export function CalendarBoard({
     [allRooms, typeFilter],
   )
 
+  // The board reads room type by room type: a heading row, then its numbers.
+  const groups = React.useMemo(
+    () =>
+      roomTypes
+        .map((type) => ({ type, rooms: visibleRooms.filter((r) => r.roomTypeId === type.id) }))
+        .filter((g) => g.rooms.length > 0),
+    [roomTypes, visibleRooms],
+  )
+
   const dates = React.useMemo(
     () => Array.from({ length: days }, (_, i) => shiftISO(start, i)),
     [start, days],
   )
   const end = dates[dates.length - 1]
-
-  const typeName = React.useMemo(() => new Map(roomTypes.map((t) => [t.id, t.name])), [roomTypes])
 
   /** Index of a date inside the window, or a clamped edge marker. */
   function idx(iso: string) {
@@ -161,24 +168,30 @@ export function CalendarBoard({
     }
 
     const dDays = Math.round((e.clientX - d.startX) / d.colW)
-    const dRows = Math.round((e.clientY - d.startY) / ROW_H)
-    if (dDays === 0 && dRows === 0) return
 
-    const fromRow = visibleRooms.findIndex((r) => r.number === booking.roomNumber)
-    const targetRow = Math.max(0, Math.min(visibleRooms.length - 1, fromRow + dRows))
-    const targetRoom = visibleRooms[targetRow]
+    // Resolve the destination from what is actually under the pointer: the
+    // board has group headings between lanes, so a row offset would not do.
+    // The bar itself is under the cursor, so it steps aside for the lookup.
+    d.el.style.pointerEvents = "none"
+    const under = document.elementFromPoint(e.clientX, e.clientY)
+    d.el.style.pointerEvents = ""
+    const lane = under?.closest<HTMLElement>("[data-roomrow]")
 
-    // Only allow a move into the same room type: rates and capacity differ.
-    const sameType = targetRoom && targetRoom.roomTypeId === booking.roomTypeId
-    const roomNumber = sameType ? targetRoom.number : booking.roomNumber
+    const roomNumber = lane?.dataset.roomrow ?? booking.roomNumber
+    const roomTypeId = lane?.dataset.roomtype ?? booking.roomTypeId
+    const movedRoom = roomNumber !== booking.roomNumber
+
+    if (dDays === 0 && !movedRoom) return
 
     const newCheckIn = shiftISO(booking.checkIn, dDays)
-    dispatch({ type: "booking:move", id: booking.id, checkIn: newCheckIn, roomNumber })
+    dispatch({ type: "booking:move", id: booking.id, checkIn: newCheckIn, roomNumber, roomTypeId })
 
+    const changedType = roomTypeId !== booking.roomTypeId
     toast.success("Reservation moved", {
       description:
-        `${booking.guestName} · ${newCheckIn}` +
-        (roomNumber !== booking.roomNumber ? ` · room ${roomNumber}` : ""),
+        movedRoom
+          ? `${booking.guestName} moved to room ${roomNumber} on ${newCheckIn}`
+          : `${booking.guestName} moved to ${newCheckIn}`,
       action: {
         label: "Undo",
         onClick: () =>
@@ -187,13 +200,14 @@ export function CalendarBoard({
             id: booking.id,
             checkIn: booking.checkIn,
             roomNumber: booking.roomNumber,
+            roomTypeId: booking.roomTypeId,
           }),
       },
     })
 
-    if (dRows !== 0 && !sameType) {
-      toast.message("Kept in the same room", {
-        description: "The target room is a different room type.",
+    if (changedType) {
+      toast.message("Room type changed", {
+        description: `The stay now sits in a different room type. Check the rate on the reservation.`,
       })
     }
   }
@@ -342,8 +356,8 @@ export function CalendarBoard({
         >
           <div className="min-w-max">
             {/* header */}
-            <div className="sticky top-0 z-20 flex border-b border-border bg-card">
-              <div className="sticky left-0 z-30 w-36 shrink-0 border-r border-border bg-card px-3 py-2 sm:w-44">
+            <div className="sticky top-0 z-30 flex border-b border-border bg-card">
+              <div className="sticky left-0 z-40 w-36 shrink-0 border-r border-border bg-card px-3 py-2 sm:w-44">
                 <span className="label-brand">{monthLabel(start)}</span>
               </div>
               <div
@@ -376,118 +390,156 @@ export function CalendarBoard({
               </div>
             </div>
 
-            {/* rows */}
-            {visibleRooms.map((room) => {
-              const roomBookings = activeBookings.filter((b) => b.roomNumber === room.number)
-              const roomBlocks = blocks.filter((b) => b.room === room.number)
-
-              return (
-                <div key={room.id} className="flex border-b border-border last:border-b-0">
-                  <div className="sticky left-0 z-10 flex w-36 shrink-0 flex-col justify-center border-r border-border bg-card px-3 sm:w-44">
-                    <span className="num truncate text-xs font-semibold">{room.number}</span>
-                    <span className="truncate text-[0.6875rem] text-muted-foreground">
-                      {typeName.get(room.roomTypeId)}
+            {/* rows, grouped by room type */}
+            {groups.map(({ type, rooms: typeRooms }) => (
+              <div key={type.id}>
+                <div className="flex border-b border-border bg-muted/45">
+                  <div className="sticky left-0 z-20 flex w-36 shrink-0 items-center gap-2 border-r border-border bg-muted/45 px-3 py-2 sm:w-44">
+                    <span className="truncate text-xs font-semibold tracking-tight">{type.name}</span>
+                    <span className="num shrink-0 rounded-full bg-card px-1.5 text-[0.625rem] font-semibold text-muted-foreground">
+                      {typeRooms.length}
                     </span>
                   </div>
-
-                  <div className="relative" style={{ height: ROW_H }}>
-                    {/* empty cells: click to start a booking on that day */}
-                    <div
-                      className="grid h-full"
-                      style={{ gridTemplateColumns: `repeat(${days}, var(--col))` }}
-                    >
-                      {dates.map((d) => (
-                        <button
-                          key={d}
-                          type="button"
-                          aria-label={`New booking, room ${room.number}, ${d}`}
-                          onClick={() =>
-                            setResDraft({
-                              prefill: { checkIn: d, roomNumber: room.number, roomTypeId: room.roomTypeId },
-                            })
-                          }
-                          className={cn(
-                            "ease-occuply border-r border-border/60 transition-colors duration-150 last:border-r-0 hover:bg-accent-soft/60",
-                            isWeekend(d) && "bg-muted/40",
-                            d === anchor && "bg-accent-soft/40",
-                          )}
-                        />
-                      ))}
-                    </div>
-
-                    {/* maintenance blocks */}
-                    {roomBlocks.map(({ ticket }) => {
-                      const s = Math.max(0, idx(ticket.reportedAt))
-                      const e = Math.min(days, idx(ticket.dueAt) + 1)
-                      if (e <= 0 || s >= days) return null
-                      return (
-                        <button
-                          key={ticket.id}
-                          type="button"
-                          onClick={() => setTicketDraft({ ticket })}
-                          title={`${ticket.reference} · ${ticket.title}`}
-                          className="absolute top-1/2 z-10 flex h-6 -translate-y-1/2 items-center gap-1 overflow-hidden rounded-md border border-destructive/40 px-1.5 text-[0.6875rem] font-medium text-destructive"
-                          style={{
-                            left: `calc(${s} * var(--col))`,
-                            width: `calc(${e - s} * var(--col))`,
-                            backgroundImage:
-                              "repeating-linear-gradient(45deg, color-mix(in oklch, var(--destructive) 16%, transparent) 0 6px, transparent 6px 12px)",
-                          }}
-                        >
-                          <WrenchIcon className="size-3 shrink-0" strokeWidth={2.25} />
-                          <span className="truncate">Blocked</span>
-                        </button>
-                      )
-                    })}
-
-                    {/* reservation bars */}
-                    {roomBookings.map((b) => {
-                      const rawIn = idx(b.checkIn)
-                      const rawOut = idx(b.checkOut)
-                      // Check-in starts mid-cell and check-out ends mid-cell, so a
-                      // departure and an arrival can share the same day column.
-                      const left = Math.max(0, rawIn + 0.5)
-                      const right = Math.min(days, rawOut + 0.5)
-                      if (right <= 0 || left >= days) return null
-
-                      const style = channelStyle(b.channel)
-
-                      return (
-                        <button
-                          key={b.id}
-                          type="button"
-                          onPointerDown={(e) => onBarPointerDown(e, b.id)}
-                          onPointerMove={onBarPointerMove}
-                          onPointerUp={(e) => onBarPointerUp(e, b.id)}
-                          onPointerCancel={() => {
-                            const d = dragRef.current
-                            dragRef.current = null
-                            if (d) resetBar(d.el)
-                          }}
-                          title={`${b.guestName} · ${b.channel} · ${b.checkIn} to ${b.checkOut}`}
-                          className={cn(
-                            "absolute top-1/2 z-10 flex h-7 items-center gap-1.5 overflow-hidden rounded-md px-2 text-left text-[0.6875rem] font-semibold",
-                            "ease-occuply touch-none select-none transition-shadow duration-150",
-                            "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
-                            "cursor-grab hover:shadow-md hover:brightness-105",
-                            b.status === "pending" && "opacity-70 ring-1 ring-inset ring-white/40",
-                          )}
-                          style={{
-                            left: `calc(${left} * var(--col))`,
-                            width: `calc(${right - left} * var(--col))`,
-                            backgroundColor: style.bg,
-                            color: style.fg,
-                            transform: "translateY(-50%)",
-                          }}
-                        >
-                          <span className="truncate">{b.guestName}</span>
-                        </button>
-                      )
-                    })}
+                  <div
+                    className="grid"
+                    style={{ gridTemplateColumns: `repeat(${days}, var(--col))` }}
+                    aria-hidden
+                  >
+                    {dates.map((d) => (
+                      <span
+                        key={d}
+                        className={cn(
+                          "border-r border-border/50 last:border-r-0",
+                          isWeekend(d) && "bg-muted/40",
+                          d === anchor && "bg-accent-soft/50",
+                        )}
+                      />
+                    ))}
                   </div>
                 </div>
-              )
-            })}
+
+                {typeRooms.map((room) => {
+                  const roomBookings = activeBookings.filter((b) => b.roomNumber === room.number)
+                  const roomBlocks = blocks.filter((b) => b.room === room.number)
+
+                  return (
+                    <div key={room.id} className="flex border-b border-border last:border-b-0">
+                      <div className="sticky left-0 z-20 flex w-36 shrink-0 flex-col justify-center border-r border-border bg-card px-3 sm:w-44">
+                        <span className="num truncate text-xs font-semibold">{room.number}</span>
+                        <span className="truncate text-[0.6875rem] text-muted-foreground">
+                          Floor {room.floor}
+                        </span>
+                      </div>
+
+                      <div
+                        className="relative"
+                        style={{ height: ROW_H }}
+                        data-roomrow={room.number}
+                        data-roomtype={room.roomTypeId}
+                      >
+                        {/* empty cells: click to start a booking on that day */}
+                        <div
+                          className="grid h-full"
+                          style={{ gridTemplateColumns: `repeat(${days}, var(--col))` }}
+                        >
+                          {dates.map((d) => (
+                            <button
+                              key={d}
+                              type="button"
+                              aria-label={`New booking, room ${room.number}, ${d}`}
+                              onClick={() =>
+                                setResDraft({
+                                  prefill: {
+                                    checkIn: d,
+                                    roomNumber: room.number,
+                                    roomTypeId: room.roomTypeId,
+                                  },
+                                })
+                              }
+                              className={cn(
+                                "ease-occuply border-r border-border/60 transition-colors duration-150 last:border-r-0 hover:bg-accent-soft/60",
+                                isWeekend(d) && "bg-muted/40",
+                                d === anchor && "bg-accent-soft/40",
+                              )}
+                            />
+                          ))}
+                        </div>
+
+                        {/* maintenance blocks */}
+                        {roomBlocks.map(({ ticket }) => {
+                          const bs = Math.max(0, idx(ticket.reportedAt))
+                          const be = Math.min(days, idx(ticket.dueAt) + 1)
+                          if (be <= 0 || bs >= days) return null
+                          return (
+                            <button
+                              key={ticket.id}
+                              type="button"
+                              onClick={() => setTicketDraft({ ticket })}
+                              title={`${ticket.reference} · ${ticket.title}`}
+                              className="absolute top-1/2 z-[1] flex h-6 -translate-y-1/2 items-center gap-1 overflow-hidden rounded-md border border-destructive/40 px-1.5 text-[0.6875rem] font-medium text-destructive"
+                              style={{
+                                left: `calc(${bs} * var(--col))`,
+                                width: `calc(${be - bs} * var(--col))`,
+                                backgroundImage:
+                                  "repeating-linear-gradient(45deg, color-mix(in oklch, var(--destructive) 16%, transparent) 0 6px, transparent 6px 12px)",
+                              }}
+                            >
+                              <WrenchIcon className="size-3 shrink-0" strokeWidth={2.25} />
+                              <span className="truncate">Blocked</span>
+                            </button>
+                          )
+                        })}
+
+                        {/* reservation bars */}
+                        {roomBookings.map((b) => {
+                          const rawIn = idx(b.checkIn)
+                          const rawOut = idx(b.checkOut)
+                          // Check-in starts mid-cell and check-out ends mid-cell, so a
+                          // departure and an arrival can share the same day column.
+                          const left = Math.max(0, rawIn + 0.5)
+                          const right = Math.min(days, rawOut + 0.5)
+                          if (right <= 0 || left >= days) return null
+
+                          const style = channelStyle(b.channel)
+
+                          return (
+                            <button
+                              key={b.id}
+                              type="button"
+                              onPointerDown={(e) => onBarPointerDown(e, b.id)}
+                              onPointerMove={onBarPointerMove}
+                              onPointerUp={(e) => onBarPointerUp(e, b.id)}
+                              onPointerCancel={() => {
+                                const d = dragRef.current
+                                dragRef.current = null
+                                if (d) resetBar(d.el)
+                              }}
+                              title={`${b.guestName} · ${b.channel} · ${b.checkIn} to ${b.checkOut}`}
+                              className={cn(
+                                "absolute top-1/2 z-[2] flex h-7 items-center gap-1.5 overflow-hidden rounded-md px-2 text-left text-[0.6875rem] font-semibold",
+                                "ease-occuply touch-none select-none transition-shadow duration-150",
+                                "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
+                                "cursor-grab hover:shadow-md hover:brightness-105",
+                                b.status === "pending" && "opacity-70 ring-1 ring-inset ring-white/40",
+                              )}
+                              style={{
+                                left: `calc(${left} * var(--col))`,
+                                width: `calc(${right - left} * var(--col))`,
+                                backgroundColor: style.bg,
+                                color: style.fg,
+                                transform: "translateY(-50%)",
+                              }}
+                            >
+                              <span className="truncate">{b.guestName}</span>
+                            </button>
+                          )
+                        })}
+                      </div>
+                    </div>
+                  )
+                })}
+              </div>
+            ))}
 
             {visibleRooms.length === 0 ? (
               <p className="px-5 py-10 text-center text-sm text-muted-foreground">
