@@ -1,6 +1,5 @@
 import type { Metadata } from "next"
 import {
-  SettingsIcon,
   SlidersHorizontalIcon,
   SparklesIcon,
   TrendingUpIcon,
@@ -10,7 +9,7 @@ import {
 import { Meter, Panel, StatStrip } from "@/components/occuply/primitives"
 import { PricingConsole } from "@/components/occuply/pricing-console"
 import { SiteHeader } from "@/components/occuply/site-header"
-import { Button } from "@/components/ui/button"
+import { EngineSettingsButton } from "@/components/occuply/action-buttons"
 import { buildSuggestions } from "@/lib/suggestions"
 import { activePropertyId, allProperties } from "@/lib/property-cookie"
 import { addDays, getSnapshot, today } from "@/lib/seed"
@@ -50,10 +49,7 @@ export default async function PricingPage() {
         today={anchor}
         alerts={suggestions.length}
       >
-        <Button variant="outline" size="sm" className="h-8 gap-1.5">
-          <SettingsIcon className="size-3.5" strokeWidth={2.25} />
-          Engine settings
-        </Button>
+        <EngineSettingsButton />
       </SiteHeader>
       <StatStrip
         stats={[

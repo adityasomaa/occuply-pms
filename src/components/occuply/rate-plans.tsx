@@ -4,7 +4,15 @@ import * as React from "react"
 import { toast } from "sonner"
 import { CheckIcon, CoffeeIcon, XIcon } from "lucide-react"
 
+import { SelectField, TextField } from "@/components/occuply/field"
 import { Panel } from "@/components/occuply/primitives"
+import {
+  Dialog,
+  DialogContent,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Switch } from "@/components/ui/switch"
@@ -28,6 +36,9 @@ const typeTone: Record<RatePlan["type"], string> = {
 export function RatePlansTable({ plans, roomTypes }: { plans: RatePlan[]; roomTypes: RoomType[] }) {
   const [state, setState] = React.useState(() => Object.fromEntries(plans.map((p) => [p.id, p.active])))
   const [selected, setSelected] = React.useState(plans[0]?.id ?? "")
+  // Local overrides so an edit shows up immediately without a backend.
+  const [edits, setEdits] = React.useState<Record<string, Partial<RatePlan>>>({})
+  const [editing, setEditing] = React.useState<RatePlan | null>(null)
 
   function toggle(plan: RatePlan, next: boolean) {
     setState((s) => ({ ...s, [plan.id]: next }))
@@ -41,14 +52,18 @@ export function RatePlansTable({ plans, roomTypes }: { plans: RatePlan[]; roomTy
     )
   }
 
-  const active = plans.find((p) => p.id === selected) ?? plans[0]
+  const merged = React.useMemo(
+    () => plans.map((p) => ({ ...p, ...(edits[p.id] ?? {}) })),
+    [plans, edits],
+  )
+  const active = merged.find((p) => p.id === selected) ?? merged[0]
   const activeCount = Object.values(state).filter(Boolean).length
 
   return (
     <div className="grid gap-4 xl:grid-cols-[minmax(0,2fr)_minmax(0,1fr)]">
       <Panel
         title="Rate plans"
-        description={`${activeCount} of ${plans.length} selling`}
+        description={`${activeCount} of ${merged.length} selling`}
         bodyClassName="overflow-x-auto scroll-slim"
       >
         <table className="w-full min-w-[760px] text-sm">
@@ -62,7 +77,7 @@ export function RatePlansTable({ plans, roomTypes }: { plans: RatePlan[]; roomTy
             </tr>
           </thead>
           <tbody className="divide-y divide-border">
-            {plans.map((p) => {
+            {merged.map((p) => {
               const on = state[p.id]
               return (
                 <tr
@@ -123,7 +138,13 @@ export function RatePlansTable({ plans, roomTypes }: { plans: RatePlan[]; roomTy
         title={active?.name ?? "Rate preview"}
         description="Derived nightly rate by room type"
         action={
-          <Button variant="outline" size="sm" className="h-7 text-xs">
+          <Button
+            variant="outline"
+            size="sm"
+            className="h-7 text-xs"
+            disabled={!active}
+            onClick={() => setEditing(active)}
+          >
             Edit plan
           </Button>
         }
@@ -184,6 +205,103 @@ export function RatePlansTable({ plans, roomTypes }: { plans: RatePlan[]; roomTy
           </div>
         ) : null}
       </Panel>
+
+      <EditPlanDialog
+        plan={editing}
+        onClose={() => setEditing(null)}
+        onSave={(patch) => {
+          if (!editing) return
+          setEdits((e) => ({ ...e, [editing.id]: { ...(e[editing.id] ?? {}), ...patch } }))
+          toast.success(`${patch.name ?? editing.name} saved`, {
+            description: "Derived rates updated across every room type.",
+          })
+          setEditing(null)
+        }}
+      />
     </div>
+  )
+}
+
+const PLAN_TYPES = ["Base", "Package", "Promotional", "Corporate", "Long stay"].map((t) => ({
+  value: t,
+  label: t,
+}))
+
+function EditPlanDialog({
+  plan,
+  onClose,
+  onSave,
+}: {
+  plan: RatePlan | null
+  onClose: () => void
+  onSave: (patch: Partial<RatePlan>) => void
+}) {
+  return (
+    <Dialog open={!!plan} onOpenChange={(open) => !open && onClose()}>
+      <DialogContent className="sm:max-w-md">
+        {plan ? <EditPlanForm key={plan.id} plan={plan} onSave={onSave} onClose={onClose} /> : null}
+      </DialogContent>
+    </Dialog>
+  )
+}
+
+function EditPlanForm({
+  plan,
+  onSave,
+  onClose,
+}: {
+  plan: RatePlan
+  onSave: (patch: Partial<RatePlan>) => void
+  onClose: () => void
+}) {
+  const [name, setName] = React.useState(plan.name)
+  const [type, setType] = React.useState<string>(plan.type)
+  const [adjustment, setAdjustment] = React.useState(String(plan.adjustment))
+  const [minStay, setMinStay] = React.useState(String(plan.minStay))
+  const [cancellation, setCancellation] = React.useState(plan.cancellation)
+
+  return (
+    <>
+      <DialogHeader>
+        <DialogTitle>Edit {plan.code}</DialogTitle>
+      </DialogHeader>
+
+      <div className="grid gap-4 py-1">
+        <TextField label="Plan name" value={name} onChange={setName} />
+        <div className="grid gap-4 sm:grid-cols-2">
+          <SelectField label="Type" value={type} onChange={setType} options={PLAN_TYPES} />
+          <TextField
+            label={plan.adjustmentKind === "percent" ? "Adjustment (%)" : "Adjustment (Rp)"}
+            type="number"
+            value={adjustment}
+            onChange={setAdjustment}
+          />
+        </div>
+        <div className="grid gap-4 sm:grid-cols-2">
+          <TextField label="Minimum stay (nights)" type="number" min={1} value={minStay} onChange={setMinStay} />
+          <TextField label="Cancellation" value={cancellation} onChange={setCancellation} />
+        </div>
+      </div>
+
+      <DialogFooter>
+        <Button variant="ghost" onClick={onClose}>
+          Cancel
+        </Button>
+        <Button
+          className="bg-accent text-accent-foreground hover:bg-accent/90"
+          onClick={() =>
+            onSave({
+              name: name.trim() || plan.name,
+              type: type as RatePlan["type"],
+              adjustment: Number(adjustment) || 0,
+              minStay: Math.max(1, Number(minStay) || 1),
+              cancellation,
+            })
+          }
+        >
+          Save plan
+        </Button>
+      </DialogFooter>
+    </>
   )
 }

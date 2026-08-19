@@ -5,11 +5,11 @@ import { toast } from "sonner"
 import {
   CheckCircle2Icon,
   LinkIcon,
-  PlugZapIcon,
   RefreshCwIcon,
   TriangleAlertIcon,
 } from "lucide-react"
 
+import { MapRoomTypeButton } from "@/components/occuply/action-buttons"
 import { Meter, Panel, StatusDot } from "@/components/occuply/primitives"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
@@ -38,6 +38,7 @@ export function ChannelsBoard({
     Object.fromEntries(channels.map((c) => [c.id, c.status !== "disabled"])),
   )
   const [syncing, setSyncing] = React.useState<string | null>(null)
+  const [repaired, setRepaired] = React.useState<Record<string, boolean>>({})
   const [selected, setSelected] = React.useState(
     channels.find((c) => c.status === "error")?.id ?? channels[0]?.id ?? "",
   )
@@ -73,9 +74,10 @@ export function ChannelsBoard({
       >
         {channels.map((c) => {
           const on = enabled[c.id]
-          const status = on ? c.status : "disabled"
+          const status = !on ? "disabled" : repaired[c.id] ? "connected" : c.status
           const meta = statusMeta[status]
-          const mapped = (c.mappedRoomTypes / c.totalRoomTypes) * 100
+          const mappedCount = repaired[c.id] ? c.totalRoomTypes : c.mappedRoomTypes
+          const mapped = (mappedCount / c.totalRoomTypes) * 100
           return (
             <div
               key={c.id}
@@ -109,7 +111,7 @@ export function ChannelsBoard({
                 <div className="mb-1 flex items-center justify-between text-[0.6875rem] text-muted-foreground">
                   <span>Mapping</span>
                   <span className="num">
-                    {c.mappedRoomTypes}/{c.totalRoomTypes}
+                    {mappedCount}/{c.totalRoomTypes}
                   </span>
                 </div>
                 <Meter value={mapped} tone={mapped === 100 ? "ok" : "warn"} />
@@ -174,7 +176,7 @@ export function ChannelsBoard({
       >
         {active ? (
           <>
-            {active.issue ? (
+            {active.issue && !repaired[active.id] ? (
               <div className="flex items-start gap-2.5 border-b border-border bg-destructive/5 px-4 py-3 lg:px-5">
                 <TriangleAlertIcon className="mt-0.5 size-4 shrink-0 text-destructive" strokeWidth={2} />
                 <p className="text-xs leading-relaxed">{active.issue}</p>
@@ -215,7 +217,8 @@ export function ChannelsBoard({
               <span className="label-brand">Room type mapping</span>
               <ul className="space-y-1.5">
                 {roomTypes.map((rt, i) => {
-                  const unmapped = active.status === "error" && i === roomTypes.length - 1
+                  const unmapped =
+                    active.status === "error" && !repaired[active.id] && i === roomTypes.length - 1
                   return (
                     <li key={rt.id} className="flex items-center gap-2 text-xs">
                       {unmapped ? (
@@ -231,11 +234,15 @@ export function ChannelsBoard({
                   )
                 })}
               </ul>
-              {active.status === "error" ? (
-                <Button size="sm" className="mt-1 h-7 w-full gap-1.5 bg-accent text-xs text-accent-foreground hover:bg-accent/90">
-                  <PlugZapIcon className="size-3" strokeWidth={2.25} />
-                  Map remaining room type
-                </Button>
+              {active.status === "error" && !repaired[active.id] ? (
+                <MapRoomTypeButton
+                  onMapped={() => {
+                    setRepaired((r) => ({ ...r, [active.id]: true }))
+                    toast.success(`${active.name} reconnected`, {
+                      description: "All room types are mapped. Rates and availability will push tonight.",
+                    })
+                  }}
+                />
               ) : null}
             </div>
           </>

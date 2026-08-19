@@ -1,6 +1,5 @@
 import type { Metadata } from "next"
 import {
-  PlusIcon,
   ScaleIcon,
   TagIcon,
   TrendingDownIcon,
@@ -10,7 +9,7 @@ import {
 import { Panel, StatStrip, StatusDot } from "@/components/occuply/primitives"
 import { RatePlansTable } from "@/components/occuply/rate-plans"
 import { SiteHeader } from "@/components/occuply/site-header"
-import { Button } from "@/components/ui/button"
+import { NewRatePlanButton, ResyncRatesButton } from "@/components/occuply/action-buttons"
 import { activePropertyId, allProperties } from "@/lib/property-cookie"
 import { addDays, getSnapshot, today } from "@/lib/seed"
 import { money, moneyShort, percent, shortDate, weekday } from "@/lib/format"
@@ -43,10 +42,7 @@ export default async function RatesPage() {
         today={anchor}
         alerts={outOfParity.length}
       >
-        <Button size="sm" className="h-8 gap-1.5 bg-accent text-accent-foreground hover:bg-accent/90">
-          <PlusIcon className="size-3.5" strokeWidth={2.25} />
-          New rate plan
-        </Button>
+        <NewRatePlanButton />
       </SiteHeader>
       <StatStrip
         stats={[
@@ -158,9 +154,7 @@ export default async function RatesPage() {
                       : "Priced above the comp set median, which suppresses conversion on this channel."}
                   </p>
                 </div>
-                <Button variant="outline" size="sm" className="h-7 shrink-0 text-xs">
-                  Resync rates
-                </Button>
+                <ResyncRatesButton />
               </li>
             ))}
           </ul>

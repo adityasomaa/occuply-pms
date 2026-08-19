@@ -103,8 +103,9 @@ export function PricingConsole({
         </div>
       </div>
 
-      <div className="grid gap-4 xl:grid-cols-[minmax(0,1fr)_minmax(0,1fr)]">
+      <div id="pricing-rules" className="grid scroll-mt-6 gap-4 xl:grid-cols-[minmax(0,1fr)_minmax(0,1fr)]">
         <Panel
+          className="scroll-mt-6"
           title="Pricing rules"
           description="Evaluated in priority order, first match wins"
           bodyClassName="divide-y divide-border"

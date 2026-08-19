@@ -146,7 +146,16 @@ export function SettingsTabs({
             <li className="space-y-1 px-4 py-3.5 lg:px-5">
               <p className="text-sm font-medium">Password</p>
               <p className="text-xs text-muted-foreground">Last changed 94 days ago.</p>
-              <Button variant="outline" size="sm" className="mt-1 h-7 text-xs">
+              <Button
+                variant="outline"
+                size="sm"
+                className="mt-1 h-7 text-xs"
+                onClick={() =>
+                  toast.message("Password reset sent", {
+                    description: `A reset link is on its way to ${user.email}. It expires in one hour.`,
+                  })
+                }
+              >
                 Change password
               </Button>
             </li>
@@ -155,7 +164,16 @@ export function SettingsTabs({
               <p className="text-xs text-muted-foreground">
                 Two devices signed in: Chrome on Windows and Safari on iPhone.
               </p>
-              <Button variant="ghost" size="sm" className="mt-1 h-7 px-0 text-xs text-destructive hover:text-destructive">
+              <Button
+                variant="ghost"
+                size="sm"
+                className="mt-1 h-7 px-0 text-xs text-destructive hover:text-destructive"
+                onClick={() =>
+                  toast.success("Signed out of other devices", {
+                    description: "One session remains: this browser.",
+                  })
+                }
+              >
                 Sign out everywhere else
               </Button>
             </li>
@@ -292,7 +310,21 @@ export function SettingsTabs({
                 Withdraws availability from every connected channel. Existing reservations are kept and
                 can still be checked in.
               </p>
-              <Button variant="outline" size="sm" className="mt-1 h-7 text-xs">
+              <Button
+                variant="outline"
+                size="sm"
+                className="mt-1 h-7 text-xs"
+                onClick={() =>
+                  toast.message(`${property.shortName} withdrawn from sale`, {
+                    description:
+                      "Availability is pulled from every connected channel. Existing reservations stay valid.",
+                    action: {
+                      label: "Undo",
+                      onClick: () => toast.success(`${property.shortName} is selling again`),
+                    },
+                  })
+                }
+              >
                 Pause distribution
               </Button>
             </div>
@@ -306,6 +338,20 @@ export function SettingsTabs({
                 variant="outline"
                 size="sm"
                 className="mt-1 h-7 border-destructive/30 text-xs text-destructive hover:bg-destructive/10 hover:text-destructive"
+                onClick={() =>
+                  toast.error(`Remove ${property.shortName}?`, {
+                    description:
+                      "This deletes rooms, rates, tickets and reporting history. Confirm to proceed.",
+                    action: {
+                      label: "Confirm",
+                      onClick: () =>
+                        toast.message("Seeded properties cannot be removed", {
+                          description:
+                            "Only properties you added inside Occuply can be deleted, from the Properties screen.",
+                        }),
+                    },
+                  })
+                }
               >
                 Remove property
               </Button>

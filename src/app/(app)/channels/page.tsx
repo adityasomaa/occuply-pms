@@ -2,7 +2,6 @@ import type { Metadata } from "next"
 import {
   CalendarCheckIcon,
   GlobeIcon,
-  PlusIcon,
   Share2Icon,
   WalletIcon,
 } from "lucide-react"
@@ -10,7 +9,7 @@ import {
 import { ChannelsBoard } from "@/components/occuply/channels-board"
 import { Panel, StatStrip } from "@/components/occuply/primitives"
 import { SiteHeader } from "@/components/occuply/site-header"
-import { Button } from "@/components/ui/button"
+import { ConnectChannelButton } from "@/components/occuply/action-buttons"
 import { activePropertyId, allProperties } from "@/lib/property-cookie"
 import { getSnapshot, today } from "@/lib/seed"
 import { money, moneyShort, percent } from "@/lib/format"
@@ -47,10 +46,7 @@ export default async function ChannelsPage({ searchParams }: PageProps<"/channel
         today={anchor}
         alerts={errors.length}
       >
-        <Button size="sm" className="h-8 gap-1.5 bg-accent text-accent-foreground hover:bg-accent/90">
-          <PlusIcon className="size-3.5" strokeWidth={2.25} />
-          Connect channel
-        </Button>
+        <ConnectChannelButton />
       </SiteHeader>
       <StatStrip
         stats={[
@@ -91,9 +87,7 @@ export default async function ChannelsPage({ searchParams }: PageProps<"/channel
                 {a.kind} · {a.note}
               </p>
             </div>
-            <Button variant="outline" size="sm" className="h-7 shrink-0 text-xs">
-              Connect
-            </Button>
+            <ConnectChannelButton name={a.name} variant="outline" />
           </div>
         ))}
       </Panel>

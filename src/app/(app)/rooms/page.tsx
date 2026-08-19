@@ -1,7 +1,6 @@
 import type { Metadata } from "next"
 import {
   BedDoubleIcon,
-  PlusIcon,
   SparklesIcon,
   UsersRoundIcon,
   WalletIcon,
@@ -12,7 +11,7 @@ import { Meter, Panel, StatStrip } from "@/components/occuply/primitives"
 import { RoomsBoard } from "@/components/occuply/rooms-board"
 import { SiteHeader } from "@/components/occuply/site-header"
 import { Badge } from "@/components/ui/badge"
-import { Button } from "@/components/ui/button"
+import { AddRoomTypeButton } from "@/components/occuply/action-buttons"
 import { activePropertyId, allProperties } from "@/lib/property-cookie"
 import { getSnapshot, today } from "@/lib/seed"
 import { money, moneyShort, percent } from "@/lib/format"
@@ -47,10 +46,7 @@ export default async function RoomsPage({ searchParams }: PageProps<"/rooms">) {
         today={anchor}
         alerts={ooo}
       >
-        <Button size="sm" className="h-8 gap-1.5 bg-accent text-accent-foreground hover:bg-accent/90">
-          <PlusIcon className="size-3.5" strokeWidth={2.25} />
-          Add room type
-        </Button>
+        <AddRoomTypeButton />
       </SiteHeader>
       <StatStrip
         stats={[
