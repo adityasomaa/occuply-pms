@@ -9,16 +9,15 @@ import {
   MapPinIcon,
   PhoneIcon,
   PieChartIcon,
-  PlusIcon,
   WalletIcon,
 } from "lucide-react"
 
 import { Panel, StatStrip } from "@/components/occuply/primitives"
 import { PropertyList, type PropertyRow } from "@/components/occuply/property-list"
+import { AddPropertyButton } from "@/components/occuply/property-switcher"
 import { SiteHeader } from "@/components/occuply/site-header"
-import { Button } from "@/components/ui/button"
-import { activePropertyId } from "@/lib/property-cookie"
-import { PROPERTIES, getSnapshot, today } from "@/lib/seed"
+import { activePropertyId, allProperties } from "@/lib/property-cookie"
+import { getSnapshot, today } from "@/lib/seed"
 import { moneyShort, percent } from "@/lib/format"
 
 export const metadata: Metadata = { title: "Properties" }
@@ -27,8 +26,10 @@ export default async function PropertiesPage() {
   const propertyId = await activePropertyId()
   const anchor = today()
 
-  const rows: PropertyRow[] = PROPERTIES.map((p) => {
-    const s = getSnapshot(p.id, anchor)
+  const pool = await allProperties()
+
+  const rows: PropertyRow[] = pool.map((p) => {
+    const s = getSnapshot(p.id, anchor, pool)
     return {
       property: p,
       occupancy: s.kpi.occupancy,
@@ -40,7 +41,7 @@ export default async function PropertiesPage() {
 
   const active = rows.find((r) => r.property.id === propertyId)!
   const portfolioUnits = rows.reduce((s, r) => s + r.property.totalUnits, 0)
-  const portfolioRevenue = PROPERTIES.reduce((s, p) => s + getSnapshot(p.id, anchor).kpi.revenue30d, 0)
+  const portfolioRevenue = pool.reduce((s, p) => s + getSnapshot(p.id, anchor, pool).kpi.revenue30d, 0)
   const weightedOcc =
     rows.reduce((s, r) => s + r.occupancy * r.property.totalUnits, 0) / Math.max(1, portfolioUnits)
 
@@ -48,17 +49,14 @@ export default async function PropertiesPage() {
     <div className="flex flex-1 flex-col gap-5 p-5 lg:p-7">
       <SiteHeader
         title="Properties"
-        subtitle={`${PROPERTIES.length} properties in the portfolio`}
+        subtitle={`${pool.length} properties in the portfolio`}
         today={anchor}
       >
-        <Button size="sm" className="h-8 gap-1.5 bg-accent text-accent-foreground hover:bg-accent/90">
-          <PlusIcon className="size-3.5" strokeWidth={2.25} />
-          Add property
-        </Button>
+        <AddPropertyButton />
       </SiteHeader>
       <StatStrip
         stats={[
-          { label: "Properties", icon: Building2Icon, tone: "orange", value: String(PROPERTIES.length), hint: "All in Bali, Indonesia" },
+          { label: "Properties", icon: Building2Icon, tone: "orange", value: String(pool.length), hint: "Switch with one click" },
           { label: "Total units", icon: BedDoubleIcon, tone: "violet", value: String(portfolioUnits), hint: "Across every property" },
           {
             label: "Portfolio occupancy · 30d", icon: PieChartIcon, tone: "blue",

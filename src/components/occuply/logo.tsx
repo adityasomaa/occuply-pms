@@ -2,9 +2,11 @@ import Image from "next/image"
 import { cn } from "@/lib/utils"
 
 const SIZES = {
-  sm: "h-6",
-  md: "h-7",
-  lg: "h-9",
+  sm: "h-7",
+  md: "h-9",
+  // Large enough that the "Property Management System" line under the wordmark
+  // is actually readable rather than a grey smudge.
+  lg: "h-12",
 } as const
 
 /** The lockup ships as supplied artwork. Per the brand guidelines the icon and
@@ -25,8 +27,8 @@ export function LogoLockup({
       <Image
         src="/logo-full.png"
         alt="Occuply"
-        width={305}
-        height={96}
+        width={610}
+        height={192}
         priority={priority}
         className="h-full w-auto dark:hidden"
       />
@@ -34,8 +36,8 @@ export function LogoLockup({
         src="/logo-full-white.png"
         alt=""
         aria-hidden
-        width={305}
-        height={96}
+        width={610}
+        height={192}
         priority={priority}
         className="hidden h-full w-auto dark:block"
       />

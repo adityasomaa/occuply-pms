@@ -12,7 +12,7 @@ import { PricingConsole } from "@/components/occuply/pricing-console"
 import { SiteHeader } from "@/components/occuply/site-header"
 import { Button } from "@/components/ui/button"
 import { buildSuggestions } from "@/lib/suggestions"
-import { activePropertyId } from "@/lib/property-cookie"
+import { activePropertyId, allProperties } from "@/lib/property-cookie"
 import { addDays, getSnapshot, today } from "@/lib/seed"
 import { money, moneyShort, percent } from "@/lib/format"
 
@@ -21,7 +21,7 @@ export const metadata: Metadata = { title: "Dynamic pricing" }
 export default async function PricingPage() {
   const propertyId = await activePropertyId()
   const anchor = today()
-  const snap = getSnapshot(propertyId, anchor)
+  const snap = getSnapshot(propertyId, anchor, await allProperties())
   const { pricingRules, inventory, roomTypes, property, kpi } = snap
 
   const horizon = addDays(anchor, 14)

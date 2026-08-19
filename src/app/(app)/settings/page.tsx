@@ -2,7 +2,7 @@ import type { Metadata } from "next"
 
 import { SettingsTabs } from "@/components/occuply/settings-tabs"
 import { SiteHeader } from "@/components/occuply/site-header"
-import { activePropertyId } from "@/lib/property-cookie"
+import { activePropertyId, allProperties } from "@/lib/property-cookie"
 import { getSnapshot, today } from "@/lib/seed"
 
 export const metadata: Metadata = { title: "User & settings" }
@@ -12,7 +12,7 @@ const TABS = ["profile", "team", "property", "notifications"]
 export default async function SettingsPage({ searchParams }: PageProps<"/settings">) {
   const propertyId = await activePropertyId()
   const anchor = today()
-  const snap = getSnapshot(propertyId, anchor)
+  const snap = getSnapshot(propertyId, anchor, await allProperties())
 
   const params = await searchParams
   const raw = Array.isArray(params.tab) ? params.tab[0] : params.tab

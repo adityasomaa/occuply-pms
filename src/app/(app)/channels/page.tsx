@@ -11,7 +11,7 @@ import { ChannelsBoard } from "@/components/occuply/channels-board"
 import { Panel, StatStrip } from "@/components/occuply/primitives"
 import { SiteHeader } from "@/components/occuply/site-header"
 import { Button } from "@/components/ui/button"
-import { activePropertyId } from "@/lib/property-cookie"
+import { activePropertyId, allProperties } from "@/lib/property-cookie"
 import { getSnapshot, today } from "@/lib/seed"
 import { money, moneyShort, percent } from "@/lib/format"
 
@@ -24,10 +24,12 @@ const AVAILABLE = [
   { name: "TripAdvisor", kind: "Metasearch", note: "Feeds the direct booking engine" },
 ]
 
-export default async function ChannelsPage() {
+export default async function ChannelsPage({ searchParams }: PageProps<"/channels">) {
   const propertyId = await activePropertyId()
   const anchor = today()
-  const snap = getSnapshot(propertyId, anchor)
+  const snap = getSnapshot(propertyId, anchor, await allProperties())
+  const params = await searchParams
+  const focusChannelId = Array.isArray(params.channel) ? params.channel[0] : params.channel
   const { channels, roomTypes, property } = snap
 
   const live = channels.filter((c) => c.status === "connected" || c.status === "syncing")
@@ -71,7 +73,7 @@ export default async function ChannelsPage() {
         ]}
       />
 
-      <ChannelsBoard channels={channels} roomTypes={roomTypes} />
+      <ChannelsBoard channels={channels} roomTypes={roomTypes} focusChannelId={focusChannelId} />
 
       <Panel
         title="Available to connect"

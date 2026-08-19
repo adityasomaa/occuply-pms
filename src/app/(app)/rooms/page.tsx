@@ -13,16 +13,18 @@ import { RoomsBoard } from "@/components/occuply/rooms-board"
 import { SiteHeader } from "@/components/occuply/site-header"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
-import { activePropertyId } from "@/lib/property-cookie"
+import { activePropertyId, allProperties } from "@/lib/property-cookie"
 import { getSnapshot, today } from "@/lib/seed"
 import { money, moneyShort, percent } from "@/lib/format"
 
 export const metadata: Metadata = { title: "Rooms" }
 
-export default async function RoomsPage() {
+export default async function RoomsPage({ searchParams }: PageProps<"/rooms">) {
   const propertyId = await activePropertyId()
   const anchor = today()
-  const snap = getSnapshot(propertyId, anchor)
+  const snap = getSnapshot(propertyId, anchor, await allProperties())
+  const params = await searchParams
+  const pick = (v: string | string[] | undefined) => (Array.isArray(v) ? v[0] : v)
   const { rooms, roomTypes, property, inventory } = snap
 
   const occupied = rooms.filter((r) => r.status === "occupied" || r.status === "departing").length
@@ -67,7 +69,15 @@ export default async function RoomsPage() {
         ]}
       />
 
-      <RoomsBoard rooms={rooms} roomTypes={roomTypes} />
+      <RoomsBoard
+        roomTypes={roomTypes}
+        anchor={anchor}
+        staff={snap.staff}
+        propertyId={propertyId}
+        focusStatus={pick(params.status)}
+        focusTypeId={pick(params.type)}
+        focusRoom={pick(params.room)}
+      />
 
       <Panel
         title="Room types"

@@ -11,7 +11,7 @@ import { Panel, StatStrip, StatusDot } from "@/components/occuply/primitives"
 import { RatePlansTable } from "@/components/occuply/rate-plans"
 import { SiteHeader } from "@/components/occuply/site-header"
 import { Button } from "@/components/ui/button"
-import { activePropertyId } from "@/lib/property-cookie"
+import { activePropertyId, allProperties } from "@/lib/property-cookie"
 import { addDays, getSnapshot, today } from "@/lib/seed"
 import { money, moneyShort, percent, shortDate, weekday } from "@/lib/format"
 import { cn } from "@/lib/utils"
@@ -21,7 +21,7 @@ export const metadata: Metadata = { title: "Rates" }
 export default async function RatesPage() {
   const propertyId = await activePropertyId()
   const anchor = today()
-  const snap = getSnapshot(propertyId, anchor)
+  const snap = getSnapshot(propertyId, anchor, await allProperties())
   const { ratePlans, roomTypes, inventory, channels, property, kpi } = snap
 
   const activePlans = ratePlans.filter((p) => p.active)

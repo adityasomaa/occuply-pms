@@ -17,6 +17,7 @@ import {
 
 import { LogoLockup, LogoMark } from "@/components/occuply/logo"
 import { NavUser } from "@/components/occuply/nav-user"
+import { PropertySwitcher } from "@/components/occuply/property-switcher"
 import {
   Sidebar,
   SidebarContent,
@@ -29,7 +30,7 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
 } from "@/components/ui/sidebar"
-import type { StaffMember } from "@/lib/types"
+import type { Property, StaffMember } from "@/lib/types"
 import { cn } from "@/lib/utils"
 
 export interface SidebarCounts {
@@ -72,21 +73,28 @@ const badgeTone = {
 export function AppSidebar({
   user,
   counts,
+  properties,
+  activePropertyId,
   ...props
 }: {
   user: StaffMember
   counts: SidebarCounts
+  properties: Property[]
+  activePropertyId: string
 } & React.ComponentProps<typeof Sidebar>) {
   const pathname = usePathname()
   const items = navItems(counts)
 
   return (
     <Sidebar collapsible="icon" className="border-r border-sidebar-border" {...props}>
-      <SidebarHeader className="px-5 pb-2 pt-6 group-data-[collapsible=icon]:px-2">
-        <Link href="/" aria-label="Occuply home" className="flex items-center">
-          <LogoLockup priority className="h-9 group-data-[collapsible=icon]:hidden" size="lg" />
-          <LogoMark size={32} className="hidden group-data-[collapsible=icon]:block" />
+      <SidebarHeader className="gap-3 px-4 pb-2 pt-5 group-data-[collapsible=icon]:px-2">
+        <Link href="/" aria-label="Occuply home" className="flex items-center px-1">
+          <LogoLockup priority className="group-data-[collapsible=icon]:hidden" size="lg" />
+          <LogoMark size={34} className="hidden group-data-[collapsible=icon]:block" />
         </Link>
+        <div className="group-data-[collapsible=icon]:hidden">
+          <PropertySwitcher properties={properties} activeId={activePropertyId} />
+        </div>
       </SidebarHeader>
 
       <SidebarContent className="scroll-slim px-3 pt-4 group-data-[collapsible=icon]:px-2">
@@ -122,7 +130,7 @@ export function AppSidebar({
                     {item.badge > 0 ? (
                       <SidebarMenuBadge
                         className={cn(
-                          "pointer-events-none top-1/2 -translate-y-1/2 rounded-full px-1.5 text-[0.6875rem] font-semibold tabular-nums",
+                          "pointer-events-none top-1/2! h-5 -translate-y-1/2 rounded-full px-1.5 text-[0.6875rem] font-semibold tabular-nums",
                           badgeTone[item.tone],
                         )}
                       >

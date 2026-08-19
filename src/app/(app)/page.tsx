@@ -20,14 +20,14 @@ import {
 import { PageHeading } from "@/components/occuply/page-heading"
 import { RevenueOverview } from "@/components/occuply/performance-chart"
 import { StatStrip } from "@/components/occuply/primitives"
-import { activePropertyId } from "@/lib/property-cookie"
+import { activePropertyId, allProperties } from "@/lib/property-cookie"
 import { getSnapshot, today } from "@/lib/seed"
 import { greetingName, money, relativeDays } from "@/lib/format"
 
 export default async function DashboardPage() {
   const propertyId = await activePropertyId()
   const anchor = today()
-  const snap = getSnapshot(propertyId, anchor)
+  const snap = getSnapshot(propertyId, anchor, await allProperties())
   const { kpi, property, rooms, bookings, tickets, metrics, channels } = snap
 
   /* ------------------------------ headline KPIs ---------------------------- */

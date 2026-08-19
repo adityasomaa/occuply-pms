@@ -335,8 +335,37 @@ const ROOM_TYPE_SEEDS: Record<string, RoomTypeSeed[]> = {
   ],
 }
 
-function buildRoomTypes(propertyId: string): RoomType[] {
-  return ROOM_TYPE_SEEDS[propertyId].map((s) => ({
+/** A sensible three-tier room plan for a property added inside the app. */
+function defaultRoomTypeSeeds(totalUnits: number): RoomTypeSeed[] {
+  const standard = Math.max(1, Math.round(totalUnits * 0.55))
+  const superior = Math.max(1, Math.round(totalUnits * 0.3))
+  const suite = Math.max(1, totalUnits - standard - superior)
+  return [
+    {
+      code: "STD", name: "Standard Room", count: standard, maxOccupancy: 2,
+      bedConfig: "1 queen", sizeSqm: 28, baseRate: 850_000, view: "Garden",
+      amenities: ["Rain shower", "Work desk", "Safe"], prefix: "ST", floor: 1,
+    },
+    {
+      code: "SUP", name: "Superior Room", count: superior, maxOccupancy: 3,
+      bedConfig: "1 king", sizeSqm: 38, baseRate: 1_250_000, view: "Pool",
+      amenities: ["Rain shower", "Balcony", "Safe"], prefix: "SU", floor: 2,
+    },
+    {
+      code: "STE", name: "Suite", count: suite, maxOccupancy: 4,
+      bedConfig: "1 king + sofa bed", sizeSqm: 62, baseRate: 2_150_000, view: "Panorama",
+      amenities: ["Lounge area", "Soaking tub", "Safe"], prefix: "SE", floor: 3,
+    },
+  ]
+}
+
+function seedsFor(property: Property): RoomTypeSeed[] {
+  return ROOM_TYPE_SEEDS[property.id] ?? defaultRoomTypeSeeds(property.totalUnits)
+}
+
+function buildRoomTypes(property: Property): RoomType[] {
+  const propertyId = property.id
+  return seedsFor(property).map((s) => ({
     id: `${propertyId}-${s.code.toLowerCase()}`,
     propertyId,
     code: s.code,
@@ -537,13 +566,14 @@ function holidayFor(iso: string): string | undefined {
 }
 
 function buildRooms(
-  propertyId: string,
+  property: Property,
   roomTypes: RoomType[],
   anchor: string,
   soldByType: Map<RoomTypeId, number>,
 ): Room[] {
+  const propertyId = property.id
   const rnd = mulberry32(hash(propertyId + "rooms" + anchor))
-  const seeds = ROOM_TYPE_SEEDS[propertyId]
+  const seeds = seedsFor(property)
   const rooms: Room[] = []
   const guestPool = [...GUESTS]
 
@@ -1148,18 +1178,22 @@ function buildMetrics(propertyId: string, roomTypes: RoomType[], anchor: string,
 
 const cache = new Map<string, PropertySnapshot>()
 
-export function getSnapshot(propertyId: string, anchor: string): PropertySnapshot {
+export function getSnapshot(
+  propertyId: string,
+  anchor: string,
+  pool: Property[] = PROPERTIES,
+): PropertySnapshot {
   const key = `${propertyId}:${anchor}`
   const hit = cache.get(key)
   if (hit) return hit
 
-  const property = getProperty(propertyId)
-  const roomTypes = buildRoomTypes(property.id)
+  const property = pool.find((p) => p.id === propertyId) ?? getProperty(propertyId)
+  const roomTypes = buildRoomTypes(property)
   const inventory = buildInventory(property.id, roomTypes, anchor)
   const soldToday = new Map<RoomTypeId, number>(
     inventory.filter((i) => i.date === anchor).map((i) => [i.roomTypeId, i.sold]),
   )
-  const rooms = buildRooms(property.id, roomTypes, anchor, soldToday)
+  const rooms = buildRooms(property, roomTypes, anchor, soldToday)
   const channels = buildChannels(property.id, roomTypes, anchor)
   const bookings = buildBookings(property.id, roomTypes, rooms, channels, anchor)
   const staff = STAFF_SEEDS.map((s, i) => ({

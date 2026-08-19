@@ -1,6 +1,7 @@
 import { AppSidebar } from "@/components/occuply/app-sidebar"
+import { DataProvider } from "@/lib/store"
 import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar"
-import { activePropertyId } from "@/lib/property-cookie"
+import { activePropertyId, allProperties } from "@/lib/property-cookie"
 import { addDays, getSnapshot, today } from "@/lib/seed"
 import { buildSuggestions } from "@/lib/suggestions"
 
@@ -10,8 +11,9 @@ export const dynamic = "force-dynamic"
 
 export default async function AppLayout({ children }: LayoutProps<"/">) {
   const propertyId = await activePropertyId()
+  const properties = await allProperties()
   const anchor = today()
-  const snap = getSnapshot(propertyId, anchor)
+  const snap = getSnapshot(propertyId, anchor, properties)
 
   const counts = {
     arrivals: snap.kpi.arrivalsToday,
@@ -30,8 +32,26 @@ export default async function AppLayout({ children }: LayoutProps<"/">) {
         } as React.CSSProperties
       }
     >
-      <AppSidebar user={snap.staff[0]} counts={counts} />
-      <SidebarInset className="min-w-0 overflow-x-clip bg-background">{children}</SidebarInset>
+      <DataProvider
+        propertyId={propertyId}
+        seed={{ bookings: snap.bookings, tickets: snap.tickets, rooms: snap.rooms }}
+        meta={{
+          property: snap.property,
+          roomTypes: snap.roomTypes,
+          channels: snap.channels,
+          staff: snap.staff,
+          ratePlans: snap.ratePlans,
+          anchor,
+        }}
+      >
+        <AppSidebar
+          user={snap.staff[0]}
+          counts={counts}
+          properties={properties}
+          activePropertyId={propertyId}
+        />
+        <SidebarInset className="min-w-0 overflow-x-clip bg-background">{children}</SidebarInset>
+      </DataProvider>
     </SidebarProvider>
   )
 }

@@ -25,7 +25,15 @@ const statusMeta = {
   disabled: { label: "Disabled", tone: "idle" as const, badge: "border-border bg-muted text-muted-foreground" },
 }
 
-export function ChannelsBoard({ channels, roomTypes }: { channels: Channel[]; roomTypes: RoomType[] }) {
+export function ChannelsBoard({
+  channels,
+  roomTypes,
+  focusChannelId,
+}: {
+  channels: Channel[]
+  roomTypes: RoomType[]
+  focusChannelId?: string
+}) {
   const [enabled, setEnabled] = React.useState(() =>
     Object.fromEntries(channels.map((c) => [c.id, c.status !== "disabled"])),
   )
@@ -33,6 +41,14 @@ export function ChannelsBoard({ channels, roomTypes }: { channels: Channel[]; ro
   const [selected, setSelected] = React.useState(
     channels.find((c) => c.status === "error")?.id ?? channels[0]?.id ?? "",
   )
+
+  // Deep link from search and the alert centre.
+  const requested = focusChannelId
+  const [handled, setHandled] = React.useState<string | null>(null)
+  if (requested && requested !== handled) {
+    setHandled(requested)
+    if (channels.some((c) => c.id === requested)) setSelected(requested)
+  }
 
   const active = channels.find((c) => c.id === selected) ?? channels[0]
   const totalRevenue = channels.reduce((s, c) => s + (enabled[c.id] ? c.revenue30d : 0), 0)
