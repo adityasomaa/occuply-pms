@@ -136,17 +136,22 @@ export function CalendarBoard({
     const dy = e.clientY - d.startY
     if (!d.moved && (Math.abs(dx) > 4 || Math.abs(dy) > 4)) {
       d.moved = true
-      d.el.style.zIndex = "30"
+      // Above the other bars while it is being moved, but still under the
+      // room column (20) and the date header (30).
+      d.el.style.zIndex = "10"
       d.el.style.cursor = "grabbing"
       d.el.style.boxShadow = "0 10px 24px -12px oklch(0.2046 0.008 50.5 / 0.6)"
     }
     if (d.moved) {
-      d.el.style.transform = `translateY(-50%) translate(${dx}px, ${dy}px)`
+      // Written to `translate`, not `transform`: React owns the transform that
+      // centres the bar on its lane, and clearing that on drop would drop the
+      // bar half its height onto the row line.
+      d.el.style.translate = `${dx}px ${dy}px`
     }
   }
 
   function resetBar(el: HTMLElement) {
-    el.style.transform = ""
+    el.style.translate = ""
     el.style.zIndex = ""
     el.style.cursor = ""
     el.style.boxShadow = ""
