@@ -11,7 +11,7 @@ import { Switch } from "@/components/ui/switch"
 import { Textarea } from "@/components/ui/textarea"
 import { money } from "@/lib/format"
 import { localId, shiftISO, useStore } from "@/lib/store"
-import type { MaintenanceTicket, Room, StaffMember } from "@/lib/types"
+import type { MaintenanceTicket, Room } from "@/lib/types"
 
 const CATEGORIES = [
   "HVAC",
@@ -42,11 +42,7 @@ export interface TicketDraft {
   prefill?: { location: string; reportedAt: string }
 }
 
-function buildInitial(
-  draft: TicketDraft | null,
-  staff: StaffMember[],
-  propertyId: string,
-): MaintenanceTicket | null {
+function buildInitial(draft: TicketDraft | null, propertyId: string): MaintenanceTicket | null {
   if (!draft) return null
   if (draft.ticket) return { ...draft.ticket }
   const pre = draft.prefill
@@ -60,8 +56,7 @@ function buildInitial(
     category: "Appliance",
     priority: "medium",
     status: "open",
-    reportedBy: staff[0]?.name ?? "Front desk",
-    assignedTo: staff.find((s) => s.department === "Maintenance")?.name ?? staff[0]?.name ?? "",
+    reportedBy: "Front desk",
     reportedAt: pre.reportedAt,
     dueAt: shiftISO(pre.reportedAt, 3),
     estimatedCost: 500_000,
@@ -74,18 +69,16 @@ export function MaintenanceSheet({
   draft,
   onOpenChange,
   rooms,
-  staff,
   propertyId,
 }: {
   draft: TicketDraft | null
   onOpenChange: (open: boolean) => void
   rooms: Room[]
-  staff: StaffMember[]
   propertyId: string
 }) {
   const initial = React.useMemo(
-    () => buildInitial(draft, staff, propertyId),
-    [draft, staff, propertyId],
+    () => buildInitial(draft, propertyId),
+    [draft, propertyId],
   )
 
   return (
@@ -97,7 +90,6 @@ export function MaintenanceSheet({
             initial={initial}
             editing={!!draft?.ticket}
             rooms={rooms}
-            staff={staff}
             onDone={() => onOpenChange(false)}
           />
         ) : null}
@@ -110,13 +102,11 @@ function TicketForm({
   initial,
   editing,
   rooms,
-  staff,
   onDone,
 }: {
   initial: MaintenanceTicket
   editing: boolean
   rooms: Room[]
-  staff: StaffMember[]
   onDone: () => void
 }) {
   const { dispatch } = useStore()
@@ -232,21 +222,13 @@ function TicketForm({
                 />
               </div>
 
-              <div className="grid gap-4 sm:grid-cols-2">
-                <SelectField
-                  label="Assigned to"
-                  value={form.assignedTo}
-                  onChange={(v) => patch({ assignedTo: v })}
-                  options={staff.map((s) => ({ value: s.name, label: s.name, hint: s.role }))}
-                />
-                <TextField
-                  label="Estimated cost"
-                  type="number"
-                  value={form.estimatedCost}
-                  onChange={(v) => patch({ estimatedCost: Math.max(0, Number(v) || 0) })}
-                  help={money(form.estimatedCost)}
-                />
-              </div>
+              <TextField
+                label="Estimated cost"
+                type="number"
+                value={form.estimatedCost}
+                onChange={(v) => patch({ estimatedCost: Math.max(0, Number(v) || 0) })}
+                help={money(form.estimatedCost)}
+              />
 
               <div className="flex items-start gap-4 rounded-lg border border-border p-3.5">
                 <div className="min-w-0 flex-1">

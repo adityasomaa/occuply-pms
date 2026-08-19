@@ -6,6 +6,7 @@ import {
   BedDoubleIcon,
   Building2Icon,
   CalendarDaysIcon,
+  ChartColumnIcon,
   CornerDownLeftIcon,
   LayoutDashboardIcon,
   SearchIcon,
@@ -41,6 +42,7 @@ const PAGES: { title: string; meta: string; href: string; icon: Hit["icon"] }[] 
   { title: "Channel setup", meta: "Distribution and mapping", href: "/channels", icon: Share2Icon },
   { title: "Maintenance", meta: "Tickets and workload", href: "/maintenance", icon: WrenchIcon },
   { title: "Dynamic pricing", meta: "Rules and recommendations", href: "/pricing", icon: SlidersHorizontalIcon },
+  { title: "Reports", meta: "Performance, distribution and cost", href: "/reports", icon: ChartColumnIcon },
   { title: "Properties", meta: "Switch or add a property", href: "/properties", icon: Building2Icon },
   { title: "User & settings", meta: "Profile, team, notifications", href: "/settings", icon: UsersRoundIcon },
 ]
@@ -118,7 +120,7 @@ export function GlobalSearch() {
     }
 
     for (const t of tickets) {
-      if (has(t.title, t.reference, t.location, t.category, t.assignedTo, t.status)) {
+      if (has(t.title, t.reference, t.location, t.category, t.status)) {
         out.push({
           id: t.id,
           group: "Maintenance",
@@ -166,19 +168,6 @@ export function GlobalSearch() {
           meta: `${p.code} · ${p.type} · min ${p.minStay} nights`,
           href: `/rates?plan=${encodeURIComponent(p.id)}`,
           icon: TagIcon,
-        })
-      }
-    }
-
-    for (const s of meta.staff) {
-      if (has(s.name, s.role, s.email, s.department)) {
-        out.push({
-          id: s.id,
-          group: "People",
-          title: s.name,
-          meta: `${s.role} · ${s.department}`,
-          href: `/settings?tab=team`,
-          icon: UsersRoundIcon,
         })
       }
     }

@@ -134,7 +134,6 @@ export interface MaintenanceTicket {
   priority: TicketPriority
   status: TicketStatus
   reportedBy: string
-  assignedTo: string
   reportedAt: string
   dueAt: string
   estimatedCost: number

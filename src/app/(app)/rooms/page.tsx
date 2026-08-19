@@ -1,20 +1,14 @@
 import type { Metadata } from "next"
-import {
-  BedDoubleIcon,
-  SparklesIcon,
-  UsersRoundIcon,
-  WalletIcon,
-  WrenchIcon,
-} from "lucide-react"
+import { UsersRoundIcon } from "lucide-react"
 
-import { Meter, Panel, StatStrip } from "@/components/occuply/primitives"
+import { Meter, Panel } from "@/components/occuply/primitives"
 import { RoomsBoard } from "@/components/occuply/rooms-board"
 import { SiteHeader } from "@/components/occuply/site-header"
 import { Badge } from "@/components/ui/badge"
 import { AddRoomTypeButton } from "@/components/occuply/action-buttons"
 import { activePropertyId, allProperties } from "@/lib/property-cookie"
 import { getSnapshot, today } from "@/lib/seed"
-import { money, moneyShort, percent } from "@/lib/format"
+import { money, moneyShort } from "@/lib/format"
 
 export const metadata: Metadata = { title: "Rooms" }
 
@@ -26,10 +20,7 @@ export default async function RoomsPage({ searchParams }: PageProps<"/rooms">) {
   const pick = (v: string | string[] | undefined) => (Array.isArray(v) ? v[0] : v)
   const { rooms, roomTypes, property, inventory } = snap
 
-  const occupied = rooms.filter((r) => r.status === "occupied" || r.status === "departing").length
-  const toClean = rooms.filter((r) => r.housekeeping === "dirty").length
   const ooo = rooms.filter((r) => r.status === "out-of-order").length
-  const sellable = rooms.length - ooo
 
   const perType = roomTypes.map((rt) => {
     const own = rooms.filter((r) => r.roomTypeId === rt.id)
@@ -48,27 +39,9 @@ export default async function RoomsPage({ searchParams }: PageProps<"/rooms">) {
       >
         <AddRoomTypeButton />
       </SiteHeader>
-      <StatStrip
-        stats={[
-          {
-            label: "Occupied now", icon: BedDoubleIcon, tone: "orange",
-            value: `${occupied}/${sellable}`,
-            hint: `${percent((occupied / Math.max(1, sellable)) * 100)} of sellable stock`,
-          },
-          { label: "Awaiting housekeeping", icon: SparklesIcon, tone: "violet", value: String(toClean), hint: "Rooms flagged dirty on the board" },
-          { label: "Out of order", icon: WrenchIcon, tone: "blue", value: String(ooo), hint: ooo > 0 ? "Blocked by maintenance" : "All units sellable" },
-          {
-            label: "Highest rate today", icon: WalletIcon, tone: "green",
-            value: moneyShort(Math.max(...perType.map((p) => p.rate))),
-            hint: perType.reduce((a, b) => (b.rate > a.rate ? b : a)).rt.name,
-          },
-        ]}
-      />
-
       <RoomsBoard
         roomTypes={roomTypes}
         anchor={anchor}
-        staff={snap.staff}
         propertyId={propertyId}
         focusStatus={pick(params.status)}
         focusTypeId={pick(params.type)}

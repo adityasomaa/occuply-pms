@@ -5,8 +5,8 @@ import Link from "next/link"
 import { usePathname } from "next/navigation"
 import {
   BedDoubleIcon,
-  Building2Icon,
   CalendarDaysIcon,
+  ChartColumnIcon,
   LayoutDashboardIcon,
   SettingsIcon,
   Share2Icon,
@@ -41,11 +41,10 @@ export interface SidebarCounts {
   pricingSuggestions: number
 }
 
-/** Order follows the brief: pick the property first, then read the day, then
- *  act on it. `/properties` is the property-change screen. */
+/** Switching property is the block under the logo, so it is not repeated
+ *  here. `/properties` stays reachable from that menu. */
 function navItems(counts: SidebarCounts) {
   return [
-    { title: "Properties", url: "/properties", icon: Building2Icon, badge: 0, tone: "neutral" as const },
     { title: "Dashboard", url: "/", icon: LayoutDashboardIcon, badge: 0, tone: "neutral" as const },
     { title: "Calendar", url: "/calendar", icon: CalendarDaysIcon, badge: counts.arrivals, tone: "neutral" as const },
     { title: "Rooms", url: "/rooms", icon: BedDoubleIcon, badge: counts.outOfOrder, tone: "warn" as const },
@@ -59,6 +58,7 @@ function navItems(counts: SidebarCounts) {
       badge: counts.pricingSuggestions,
       tone: "accent" as const,
     },
+    { title: "Reports", url: "/reports", icon: ChartColumnIcon, badge: 0, tone: "neutral" as const },
     { title: "User & settings", url: "/settings", icon: SettingsIcon, badge: 0, tone: "neutral" as const },
   ]
 }

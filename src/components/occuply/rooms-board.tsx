@@ -22,7 +22,7 @@ import { Input } from "@/components/ui/input"
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
 import { moneyShort, shortDate } from "@/lib/format"
 import { roomStatusFor, useStore } from "@/lib/store"
-import type { Room, RoomStatus, RoomType, StaffMember } from "@/lib/types"
+import type { Room, RoomStatus, RoomType } from "@/lib/types"
 import { cn } from "@/lib/utils"
 
 const STATUS_META: Record<
@@ -49,7 +49,6 @@ const ORDER: RoomStatus[] = [
 export function RoomsBoard({
   roomTypes,
   anchor,
-  staff,
   propertyId,
   focusStatus,
   focusTypeId,
@@ -57,7 +56,6 @@ export function RoomsBoard({
 }: {
   roomTypes: RoomType[]
   anchor: string
-  staff: StaffMember[]
   propertyId: string
   focusStatus?: string
   focusTypeId?: string
@@ -326,7 +324,6 @@ export function RoomsBoard({
         draft={ticketDraft}
         onOpenChange={(open) => !open && setTicketDraft(null)}
         rooms={rooms}
-        staff={staff}
         propertyId={propertyId}
       />
     </>

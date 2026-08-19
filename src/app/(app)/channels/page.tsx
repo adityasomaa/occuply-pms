@@ -1,18 +1,11 @@
 import type { Metadata } from "next"
-import {
-  CalendarCheckIcon,
-  GlobeIcon,
-  Share2Icon,
-  WalletIcon,
-} from "lucide-react"
 
-import { ChannelsBoard } from "@/components/occuply/channels-board"
-import { Panel, StatStrip } from "@/components/occuply/primitives"
-import { SiteHeader } from "@/components/occuply/site-header"
 import { ConnectChannelButton } from "@/components/occuply/action-buttons"
+import { ChannelsBoard } from "@/components/occuply/channels-board"
+import { Panel } from "@/components/occuply/primitives"
+import { SiteHeader } from "@/components/occuply/site-header"
 import { activePropertyId, allProperties } from "@/lib/property-cookie"
 import { getSnapshot, today } from "@/lib/seed"
-import { money, moneyShort, percent } from "@/lib/format"
 
 export const metadata: Metadata = { title: "Channel setup" }
 
@@ -29,47 +22,22 @@ export default async function ChannelsPage({ searchParams }: PageProps<"/channel
   const snap = getSnapshot(propertyId, anchor, await allProperties())
   const params = await searchParams
   const focusChannelId = Array.isArray(params.channel) ? params.channel[0] : params.channel
-  const { channels, roomTypes, property } = snap
-
-  const live = channels.filter((c) => c.status === "connected" || c.status === "syncing")
-  const errors = channels.filter((c) => c.status === "error")
-  const revenue = channels.reduce((s, c) => s + c.revenue30d, 0)
-  const bookings = channels.reduce((s, c) => s + c.bookings30d, 0)
-  const commissionPaid = channels.reduce((s, c) => s + (c.revenue30d * c.commission) / 100, 0)
-  const direct = channels.find((c) => c.kind === "Direct")
 
   return (
     <div className="flex flex-1 flex-col gap-5 p-5 lg:p-7">
       <SiteHeader
         title="Channel setup"
-        subtitle={`Distribution and mapping · ${property.name}`}
+        subtitle={`Where ${snap.property.name} is distributed`}
         today={anchor}
-        alerts={errors.length}
       >
         <ConnectChannelButton />
       </SiteHeader>
-      <StatStrip
-        stats={[
-          {
-            label: "Live channels", icon: Share2Icon, tone: "orange",
-            value: `${live.length}/${channels.length}`,
-            hint: errors.length ? `${errors.length} need attention` : "All connections healthy",
-          },
-          { label: "Bookings · 30d", icon: CalendarCheckIcon, tone: "blue", value: String(bookings), hint: "Across every connected channel" },
-          {
-            label: "Commission paid · 30d", icon: WalletIcon, tone: "green",
-            value: moneyShort(commissionPaid),
-            hint: `${percent((commissionPaid / Math.max(1, revenue)) * 100)} of channel revenue`,
-          },
-          {
-            label: "Direct share", icon: GlobeIcon, tone: "violet",
-            value: percent(((direct?.bookings30d ?? 0) / Math.max(1, bookings)) * 100),
-            hint: `${money(direct?.revenue30d ?? 0)} booked commission-light`,
-          },
-        ]}
-      />
 
-      <ChannelsBoard channels={channels} roomTypes={roomTypes} focusChannelId={focusChannelId} />
+      <ChannelsBoard
+        channels={snap.channels}
+        roomTypes={snap.roomTypes}
+        focusChannelId={focusChannelId}
+      />
 
       <Panel
         title="Available to connect"

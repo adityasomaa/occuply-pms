@@ -1,7 +1,7 @@
 "use client"
 
 import Link from "next/link"
-import { BellIcon, ChevronDownIcon, KeyRoundIcon, LogOutIcon, UserRoundIcon } from "lucide-react"
+import { BellIcon, ChevronDownIcon, LogOutIcon, UserRoundIcon } from "lucide-react"
 
 import {
   DropdownMenu,
@@ -60,10 +60,6 @@ export function NavUser({ user }: { user: StaffMember }) {
             <DropdownMenuItem render={<Link href="/settings" />}>
               <UserRoundIcon />
               Profile
-            </DropdownMenuItem>
-            <DropdownMenuItem render={<Link href="/settings?tab=team" />}>
-              <KeyRoundIcon />
-              Roles &amp; access
             </DropdownMenuItem>
             <DropdownMenuItem render={<Link href="/settings?tab=notifications" />}>
               <BellIcon />

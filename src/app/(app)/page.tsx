@@ -197,9 +197,9 @@ export default async function DashboardPage() {
       </div>
 
       <TipsFooter
-        tip="Add your team members to collaborate more easily."
-        cta="Invite Team"
-        href="/settings?tab=team"
+        tip="Drag a reservation on the calendar to move it between dates or rooms."
+        cta="Open calendar"
+        href="/calendar"
       />
     </div>
   )

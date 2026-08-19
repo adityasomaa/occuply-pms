@@ -1,12 +1,6 @@
 import type { Metadata } from "next"
-import {
-  SlidersHorizontalIcon,
-  SparklesIcon,
-  TrendingUpIcon,
-  WalletIcon,
-} from "lucide-react"
 
-import { Meter, Panel, StatStrip } from "@/components/occuply/primitives"
+import { Meter, Panel } from "@/components/occuply/primitives"
 import { PricingConsole } from "@/components/occuply/pricing-console"
 import { SiteHeader } from "@/components/occuply/site-header"
 import { EngineSettingsButton } from "@/components/occuply/action-buttons"
@@ -21,15 +15,10 @@ export default async function PricingPage() {
   const propertyId = await activePropertyId()
   const anchor = today()
   const snap = getSnapshot(propertyId, anchor, await allProperties())
-  const { pricingRules, inventory, roomTypes, property, kpi } = snap
+  const { pricingRules, inventory, roomTypes, property } = snap
 
   const horizon = addDays(anchor, 14)
   const suggestions = buildSuggestions(inventory, roomTypes, anchor, horizon)
-
-  const activeRules = pricingRules.filter((r) => r.active)
-  const impact30d = pricingRules.reduce((s, r) => s + r.revenueImpact, 0)
-  const fires30d = pricingRules.reduce((s, r) => s + r.appliedLast30d, 0)
-  const upside = suggestions.reduce((s, x) => s + (x.suggested - x.current) * Math.max(1, x.sold), 0)
 
   // How far each room type currently sits from its guardrails.
   const guardrails = roomTypes.map((rt) => {
@@ -51,22 +40,6 @@ export default async function PricingPage() {
       >
         <EngineSettingsButton />
       </SiteHeader>
-      <StatStrip
-        stats={[
-          { label: "Active rules", icon: SlidersHorizontalIcon, tone: "orange", value: `${activeRules.length}/${pricingRules.length}`, hint: `${fires30d} rate changes fired in 30 days` },
-          {
-            label: "Revenue impact · 30d", icon: WalletIcon, tone: "green",
-            value: moneyShort(impact30d),
-            hint: "Attributed to automatic repricing",
-          },
-          {
-            label: "Open recommendations", icon: SparklesIcon, tone: "violet",
-            value: String(suggestions.length),
-            hint: suggestions.length ? `Worth roughly ${moneyShort(upside)}` : "Nothing to review",
-          },
-          { label: "RevPAR · 30d", icon: TrendingUpIcon, tone: "blue", value: moneyShort(kpi.revpar), delta: kpi.revparDelta, hint: "The number this engine moves" },
-        ]}
-      />
 
       <PricingConsole rules={pricingRules} suggestions={suggestions} />
 

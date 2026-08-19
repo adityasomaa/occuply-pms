@@ -75,7 +75,7 @@ export function NotificationBell() {
           id: `mt-${t.id}`,
           severity: "urgent",
           title: t.priority === "critical" ? `Critical: ${t.title}` : `Overdue: ${t.title}`,
-          detail: `${t.location} · assigned to ${t.assignedTo}${t.blocksRoom ? " · room is blocked" : ""}`,
+          detail: `${t.location} · ${t.category}${t.blocksRoom ? " · room is blocked" : ""}`,
           action: "Open the ticket",
           href: `/maintenance?ticket=${encodeURIComponent(t.id)}`,
           icon: WrenchIcon,

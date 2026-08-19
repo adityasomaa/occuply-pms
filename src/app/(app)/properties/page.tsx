@@ -1,24 +1,19 @@
 import type { Metadata } from "next"
 import {
-  BedDoubleIcon,
-  Building2Icon,
   CheckIcon,
   ClockIcon,
   GlobeIcon,
   MailIcon,
   MapPinIcon,
   PhoneIcon,
-  PieChartIcon,
-  WalletIcon,
 } from "lucide-react"
 
-import { Panel, StatStrip } from "@/components/occuply/primitives"
+import { Panel } from "@/components/occuply/primitives"
 import { PropertyList, type PropertyRow } from "@/components/occuply/property-list"
 import { AddPropertyButton } from "@/components/occuply/property-switcher"
 import { SiteHeader } from "@/components/occuply/site-header"
 import { activePropertyId, allProperties } from "@/lib/property-cookie"
 import { getSnapshot, today } from "@/lib/seed"
-import { moneyShort, percent } from "@/lib/format"
 
 export const metadata: Metadata = { title: "Properties" }
 
@@ -40,11 +35,6 @@ export default async function PropertiesPage() {
   })
 
   const active = rows.find((r) => r.property.id === propertyId)!
-  const portfolioUnits = rows.reduce((s, r) => s + r.property.totalUnits, 0)
-  const portfolioRevenue = pool.reduce((s, p) => s + getSnapshot(p.id, anchor, pool).kpi.revenue30d, 0)
-  const weightedOcc =
-    rows.reduce((s, r) => s + r.occupancy * r.property.totalUnits, 0) / Math.max(1, portfolioUnits)
-
   return (
     <div className="flex flex-1 flex-col gap-5 p-5 lg:p-7">
       <SiteHeader
@@ -54,18 +44,6 @@ export default async function PropertiesPage() {
       >
         <AddPropertyButton />
       </SiteHeader>
-      <StatStrip
-        stats={[
-          { label: "Properties", icon: Building2Icon, tone: "orange", value: String(pool.length), hint: "Switch with one click" },
-          { label: "Total units", icon: BedDoubleIcon, tone: "violet", value: String(portfolioUnits), hint: "Across every property" },
-          {
-            label: "Portfolio occupancy · 30d", icon: PieChartIcon, tone: "blue",
-            value: percent(weightedOcc),
-            hint: "Weighted by unit count",
-          },
-          { label: "Portfolio revenue · 30d", icon: WalletIcon, tone: "green", value: moneyShort(portfolioRevenue), hint: "Room revenue only" },
-        ]}
-      />
 
       <div className="space-y-3">
         <div>

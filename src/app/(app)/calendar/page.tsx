@@ -26,7 +26,6 @@ export default async function CalendarPage({ searchParams }: PageProps<"/calenda
         roomTypes={snap.roomTypes}
         anchor={anchor}
         propertyId={propertyId}
-        staff={snap.staff}
         focusBookingId={focusBookingId}
       />
     </div>

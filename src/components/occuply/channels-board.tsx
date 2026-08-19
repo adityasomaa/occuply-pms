@@ -14,7 +14,7 @@ import { Meter, Panel, StatusDot } from "@/components/occuply/primitives"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Switch } from "@/components/ui/switch"
-import { moneyShort, percent, timeOfDay } from "@/lib/format"
+import { percent, timeOfDay } from "@/lib/format"
 import type { Channel, RoomType } from "@/lib/types"
 import { cn } from "@/lib/utils"
 
@@ -52,7 +52,6 @@ export function ChannelsBoard({
   }
 
   const active = channels.find((c) => c.id === selected) ?? channels[0]
-  const totalRevenue = channels.reduce((s, c) => s + (enabled[c.id] ? c.revenue30d : 0), 0)
 
   function resync(c: Channel) {
     setSyncing(c.id)
@@ -69,7 +68,7 @@ export function ChannelsBoard({
     <div className="grid gap-4 xl:grid-cols-[minmax(0,2fr)_minmax(0,1fr)]">
       <Panel
         title="Connected channels"
-        description={`${channels.filter((c) => enabled[c.id]).length} live · ${moneyShort(totalRevenue)} in the last 30 days`}
+        description={`${channels.filter((c) => enabled[c.id]).length} of ${channels.length} connected`}
         bodyClassName="divide-y divide-border"
       >
         {channels.map((c) => {
@@ -115,11 +114,6 @@ export function ChannelsBoard({
                   </span>
                 </div>
                 <Meter value={mapped} tone={mapped === 100 ? "ok" : "warn"} />
-              </div>
-
-              <div className="hidden w-24 text-right lg:block">
-                <p className="num text-sm font-medium">{moneyShort(c.revenue30d)}</p>
-                <p className="num text-[0.6875rem] text-muted-foreground">{c.bookings30d} bookings</p>
               </div>
 
               <Badge variant="outline" className={cn("shrink-0", meta.badge)}>
@@ -194,8 +188,6 @@ export function ChannelsBoard({
               {[
                 { k: "Connection type", v: active.kind },
                 { k: "Commission", v: percent(active.commission) },
-                { k: "Bookings · 30d", v: String(active.bookings30d) },
-                { k: "Revenue · 30d", v: moneyShort(active.revenue30d) },
                 {
                   k: "Rate parity",
                   v:

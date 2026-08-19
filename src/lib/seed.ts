@@ -903,7 +903,6 @@ function buildTickets(propertyId: string, rooms: Room[], staff: StaffMember[], a
     },
   ]
 
-  const maintenanceStaff = staff.filter((s) => s.department === "Maintenance")
   const reporters = staff.filter((s) => s.department === "Front Office" || s.department === "Housekeeping")
 
   return specs.map((spec, i) => {
@@ -934,12 +933,6 @@ function buildTickets(propertyId: string, rooms: Room[], staff: StaffMember[], a
       priority: spec.priority,
       status,
       reportedBy: reporters[i % reporters.length]?.name ?? "Bagus Prayoga",
-      assignedTo:
-        spec.category === "Pool & Garden"
-          ? (maintenanceStaff.find((s) => s.role.includes("Pool"))?.name ??
-            maintenanceStaff[0]?.name ??
-            "Gede Wisnu Mahendra")
-          : (maintenanceStaff[i % maintenanceStaff.length]?.name ?? "Gede Wisnu Mahendra"),
       reportedAt: addDays(anchor, reportedOffset),
       dueAt: addDays(anchor, spec.priority === "critical" ? 0 : spec.priority === "high" ? 2 : 6),
       estimatedCost: spec.cost,

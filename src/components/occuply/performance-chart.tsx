@@ -4,6 +4,7 @@ import * as React from "react"
 import { Area, AreaChart, CartesianGrid, XAxis, YAxis } from "recharts"
 import { TrendingDownIcon, TrendingUpIcon } from "lucide-react"
 
+import { SelectField } from "@/components/occuply/field"
 import { ChartContainer, ChartTooltip, type ChartConfig } from "@/components/ui/chart"
 import { money, moneyAxis, shortDate } from "@/lib/format"
 import type { DailyMetric } from "@/lib/types"
@@ -14,9 +15,9 @@ const config = {
 } satisfies ChartConfig
 
 const RANGES = [
-  { value: "30", label: "This Month" },
-  { value: "7", label: "This Week" },
-  { value: "90", label: "Last 3 Months" },
+  { value: "30", label: "This month" },
+  { value: "7", label: "This week" },
+  { value: "90", label: "Last 3 months" },
 ]
 
 /** Matches the reference: headline total on the left, range picker on the
@@ -38,27 +39,15 @@ export function RevenueOverview({ metrics }: { metrics: DailyMetric[] }) {
     <section className="rounded-2xl border border-border bg-card p-5">
       <header className="flex flex-wrap items-center justify-between gap-3">
         <h2 className="text-base font-semibold tracking-tight">Revenue Overview</h2>
-        <div className="relative">
-          <select
-            value={range}
-            onChange={(e) => setRange(e.target.value)}
-            aria-label="Revenue period"
-            className="ease-occuply h-9 appearance-none rounded-lg border border-border bg-card pl-3.5 pr-9 text-xs font-medium outline-none transition-colors duration-150 hover:bg-muted focus-visible:ring-2 focus-visible:ring-ring"
-          >
-            {RANGES.map((r) => (
-              <option key={r.value} value={r.value}>
-                {r.label}
-              </option>
-            ))}
-          </select>
-          <svg
-            viewBox="0 0 12 12"
-            aria-hidden
-            className="pointer-events-none absolute right-3 top-1/2 size-3 -translate-y-1/2 text-muted-foreground"
-          >
-            <path d="M2.5 4.5 6 8l3.5-3.5" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
-          </svg>
-        </div>
+        <SelectField
+          value={range}
+          onChange={setRange}
+          options={RANGES}
+          size="sm"
+          align="end"
+          className="w-40"
+          triggerClassName="text-xs font-medium"
+        />
       </header>
 
       <div className="mt-4">

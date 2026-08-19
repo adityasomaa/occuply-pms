@@ -7,7 +7,7 @@ import { getSnapshot, today } from "@/lib/seed"
 
 export const metadata: Metadata = { title: "User & settings" }
 
-const TABS = ["profile", "team", "property", "notifications"]
+const TABS = ["profile", "property", "notifications"]
 
 export default async function SettingsPage({ searchParams }: PageProps<"/settings">) {
   const propertyId = await activePropertyId()
@@ -27,7 +27,6 @@ export default async function SettingsPage({ searchParams }: PageProps<"/setting
       />
       <SettingsTabs
         user={snap.staff[0]}
-        staff={snap.staff}
         property={snap.property}
         initialTab={tab}
       />

@@ -3,12 +3,9 @@
 import * as React from "react"
 import { toast } from "sonner"
 import {
-  BedDoubleIcon,
   CalendarPlusIcon,
   ChevronLeftIcon,
   ChevronRightIcon,
-  LogInIcon,
-  LogOutIcon,
   PlusIcon,
   WrenchIcon,
 } from "lucide-react"
@@ -16,12 +13,17 @@ import {
 import { DateField, SelectField } from "@/components/occuply/field"
 import { MaintenanceSheet, type TicketDraft } from "@/components/occuply/maintenance-sheet"
 import { ReservationSheet, type ReservationDraft } from "@/components/occuply/reservation-sheet"
-import { StatStrip } from "@/components/occuply/primitives"
+
 import { Button } from "@/components/ui/button"
 import { channelStyle } from "@/lib/channels"
-import { dayNumber, isWeekend, monthLabel, weekday } from "@/lib/format"
+import {
+  dayNumber,
+  isWeekend,
+  monthLabel,
+  weekday,
+} from "@/lib/format"
 import { shiftISO, useStore } from "@/lib/store"
-import type { Room, RoomType, StaffMember } from "@/lib/types"
+import type { Room, RoomType } from "@/lib/types"
 import { cn } from "@/lib/utils"
 
 const WINDOWS = [
@@ -46,14 +48,12 @@ export function CalendarBoard({
   roomTypes,
   anchor,
   propertyId,
-  staff,
   focusBookingId,
 }: {
   rooms: Room[]
   roomTypes: RoomType[]
   anchor: string
   propertyId: string
-  staff: StaffMember[]
   /** Deep link from search or the alert centre. */
   focusBookingId?: string
 }) {
@@ -232,16 +232,6 @@ export function CalendarBoard({
     [bookings, start, end],
   )
 
-  const stats = React.useMemo(() => {
-    const arrivals = bookings.filter((b) => b.checkIn === anchor && b.status !== "cancelled").length
-    const departures = bookings.filter((b) => b.checkOut === anchor && b.status !== "cancelled").length
-    const inHouse = bookings.filter(
-      (b) => b.status !== "cancelled" && b.checkIn <= anchor && b.checkOut > anchor,
-    ).length
-    const blocked = tickets.filter((t) => t.blocksRoom && t.status !== "resolved").length
-    return { arrivals, departures, inHouse, blocked }
-  }, [bookings, tickets, anchor])
-
   const channelsInView = React.useMemo(() => {
     const set = new Set(activeBookings.map((b) => b.channel))
     return [...set].sort()
@@ -249,38 +239,6 @@ export function CalendarBoard({
 
   return (
     <>
-      <StatStrip
-        stats={[
-          {
-            label: "Arriving today",
-            value: String(stats.arrivals),
-            hint: "Reservations checking in",
-            icon: LogInIcon,
-            tone: "orange",
-          },
-          {
-            label: "Departing today",
-            value: String(stats.departures),
-            hint: "Rooms turning over",
-            icon: LogOutIcon,
-            tone: "blue",
-          },
-          {
-            label: "In house tonight",
-            value: String(stats.inHouse),
-            hint: `Of ${allRooms.length} rooms`,
-            icon: BedDoubleIcon,
-            tone: "green",
-          },
-          {
-            label: "Rooms blocked",
-            value: String(stats.blocked),
-            hint: stats.blocked ? "Held for maintenance" : "Everything sellable",
-            icon: WrenchIcon,
-            tone: "violet",
-          },
-        ]}
-      />
 
       <section className="overflow-hidden rounded-2xl border border-border bg-card">
         {/* ------------------------------ toolbar ------------------------------ */}
@@ -603,7 +561,6 @@ export function CalendarBoard({
         draft={ticketDraft}
         onOpenChange={(open) => !open && setTicketDraft(null)}
         rooms={allRooms}
-        staff={staff}
         propertyId={propertyId}
       />
     </>

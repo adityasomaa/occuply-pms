@@ -24,7 +24,6 @@ export default async function MaintenancePage({ searchParams }: PageProps<"/main
       <MaintenanceBoard
         anchor={anchor}
         rooms={snap.rooms}
-        staff={snap.staff}
         propertyId={propertyId}
         focusTicketId={focusTicketId}
         startNew={params.new !== undefined}

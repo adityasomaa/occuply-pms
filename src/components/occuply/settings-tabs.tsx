@@ -2,9 +2,9 @@
 
 import * as React from "react"
 import { toast } from "sonner"
-import { MailPlusIcon, ShieldCheckIcon } from "lucide-react"
+import { ShieldCheckIcon } from "lucide-react"
 
-import { Panel, StatusDot } from "@/components/occuply/primitives"
+import { Panel } from "@/components/occuply/primitives"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -12,17 +12,7 @@ import { Label } from "@/components/ui/label"
 import { Switch } from "@/components/ui/switch"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Textarea } from "@/components/ui/textarea"
-import { timeOfDay, shortDate } from "@/lib/format"
 import type { Property, StaffMember } from "@/lib/types"
-import { cn } from "@/lib/utils"
-
-const accessTone: Record<StaffMember["accessLevel"], string> = {
-  Owner: "border-accent/35 bg-accent-soft text-accent-brand",
-  Manager: "border-status-info/30 bg-status-info/10 text-status-info",
-  Supervisor: "border-status-ok/30 bg-status-ok/10 text-status-ok",
-  Staff: "border-border bg-muted text-muted-foreground",
-  "Read only": "border-border bg-muted text-muted-foreground",
-}
 
 const NOTIFICATIONS = [
   {
@@ -65,16 +55,13 @@ const NOTIFICATIONS = [
 
 export function SettingsTabs({
   user,
-  staff,
   property,
   initialTab,
 }: {
   user: StaffMember
-  staff: StaffMember[]
   property: Property
   initialTab: string
 }) {
-  const [team, setTeam] = React.useState(() => Object.fromEntries(staff.map((s) => [s.id, s.active])))
   const [notifs, setNotifs] = React.useState(() =>
     Object.fromEntries(NOTIFICATIONS.map((n) => [n.id, n.on])),
   )
@@ -83,7 +70,6 @@ export function SettingsTabs({
     <Tabs defaultValue={initialTab} className="gap-4">
       <TabsList className="w-full justify-start overflow-x-auto scroll-slim">
         <TabsTrigger value="profile">Profile</TabsTrigger>
-        <TabsTrigger value="team">Team &amp; access</TabsTrigger>
         <TabsTrigger value="property">Property</TabsTrigger>
         <TabsTrigger value="notifications">Notifications</TabsTrigger>
       </TabsList>
@@ -178,88 +164,6 @@ export function SettingsTabs({
               </Button>
             </li>
           </ul>
-        </Panel>
-      </TabsContent>
-
-      {/* -------------------------------- team ------------------------------- */}
-      <TabsContent value="team">
-        <Panel
-          title="Team and access"
-          description={`${Object.values(team).filter(Boolean).length} of ${staff.length} accounts active`}
-          action={
-            <Button
-              size="sm"
-              className="h-7 gap-1.5 bg-accent text-xs text-accent-foreground hover:bg-accent/90"
-              onClick={() => toast.success("Invitation sent", { description: "The invite expires in seven days." })}
-            >
-              <MailPlusIcon className="size-3" strokeWidth={2.25} />
-              Invite
-            </Button>
-          }
-          bodyClassName="overflow-x-auto scroll-slim"
-        >
-          <table className="w-full min-w-[760px] text-sm">
-            <thead>
-              <tr className="border-b border-border text-left">
-                {["Person", "Department", "Access level", "Contact", "Last active", "Enabled"].map((h) => (
-                  <th key={h} className="label-brand px-4 py-2 font-medium lg:px-5">
-                    {h}
-                  </th>
-                ))}
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-border">
-              {staff.map((s) => (
-                <tr
-                  key={s.id}
-                  className={cn(
-                    "ease-occuply transition-colors hover:bg-muted/50",
-                    !team[s.id] && "opacity-55",
-                  )}
-                >
-                  <td className="px-4 py-3 lg:px-5">
-                    <div className="flex items-center gap-2.5">
-                      <span className="flex size-7 shrink-0 items-center justify-center rounded-md bg-foreground text-[0.625rem] font-semibold text-background">
-                        {s.initials}
-                      </span>
-                      <div className="min-w-0">
-                        <p className="truncate font-medium">{s.name}</p>
-                        <p className="truncate text-xs text-muted-foreground">{s.role}</p>
-                      </div>
-                    </div>
-                  </td>
-                  <td className="px-4 py-3 text-muted-foreground lg:px-5">{s.department}</td>
-                  <td className="px-4 py-3 lg:px-5">
-                    <Badge variant="outline" className={accessTone[s.accessLevel]}>
-                      {s.accessLevel}
-                    </Badge>
-                  </td>
-                  <td className="px-4 py-3 lg:px-5">
-                    <p className="truncate text-xs">{s.email}</p>
-                    <p className="num truncate text-xs text-muted-foreground">{s.phone}</p>
-                  </td>
-                  <td className="px-4 py-3 lg:px-5">
-                    <span className="flex items-center gap-1.5 text-xs text-muted-foreground">
-                      <StatusDot tone={team[s.id] ? "ok" : "idle"} className="size-1.5" />
-                      {shortDate(s.lastActive)} · {timeOfDay(s.lastActive)}
-                    </span>
-                  </td>
-                  <td className="px-4 py-3 lg:px-5">
-                    <Switch
-                      checked={team[s.id]}
-                      onCheckedChange={(v) => {
-                        setTeam((t) => ({ ...t, [s.id]: v }))
-                        toast[v ? "success" : "message"](
-                          v ? `${s.name} can sign in again` : `${s.name} suspended`,
-                        )
-                      }}
-                      aria-label={`${team[s.id] ? "Suspend" : "Reactivate"} ${s.name}`}
-                    />
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
         </Panel>
       </TabsContent>
 

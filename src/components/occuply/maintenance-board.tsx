@@ -8,19 +8,16 @@ import {
   DoorClosedIcon,
   PlusIcon,
   SearchIcon,
-  TriangleAlertIcon,
-  WalletIcon,
-  WrenchIcon,
 } from "lucide-react"
 
 import { MaintenanceSheet, type TicketDraft } from "@/components/occuply/maintenance-sheet"
-import { EmptyState, Panel, StatStrip, StatusDot } from "@/components/occuply/primitives"
+import { EmptyState, Panel, StatusDot } from "@/components/occuply/primitives"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
-import { initials, moneyShort, relativeDays, shortDate } from "@/lib/format"
+import { moneyShort, relativeDays, shortDate } from "@/lib/format"
 import { useStore } from "@/lib/store"
-import type { Room, StaffMember, TicketStatus } from "@/lib/types"
+import type { Room, TicketStatus } from "@/lib/types"
 import { cn } from "@/lib/utils"
 
 const STATUSES: { key: TicketStatus; label: string; tone: "risk" | "warn" | "info" | "ok" }[] = [
@@ -40,14 +37,12 @@ const priorityTone = {
 export function MaintenanceBoard({
   anchor,
   rooms,
-  staff,
   propertyId,
   focusTicketId,
   startNew,
 }: {
   anchor: string
   rooms: Room[]
-  staff: StaffMember[]
   propertyId: string
   focusTicketId?: string
   startNew?: boolean
@@ -79,7 +74,6 @@ export function MaintenanceBoard({
       return (
         t.title.toLowerCase().includes(q) ||
         t.location.toLowerCase().includes(q) ||
-        t.assignedTo.toLowerCase().includes(q) ||
         t.reference.toLowerCase().includes(q)
       )
     }
@@ -91,45 +85,8 @@ export function MaintenanceBoard({
     toast.success(`${reference} resolved`)
   }
 
-  const open = tickets.filter((t) => t.status !== "resolved")
-  const critical = open.filter((t) => t.priority === "critical")
-  const blocking = open.filter((t) => t.blocksRoom)
-  const spend = open.reduce((s, t) => s + t.estimatedCost, 0)
-
   return (
     <>
-      <StatStrip
-        stats={[
-          {
-            label: "Open tickets",
-            value: String(open.length),
-            hint: `${tickets.length - open.length} resolved`,
-            icon: WrenchIcon,
-            tone: "orange",
-          },
-          {
-            label: "Critical",
-            value: String(critical.length),
-            hint: critical.length ? critical[0].title : "Nothing critical outstanding",
-            icon: TriangleAlertIcon,
-            tone: "violet",
-          },
-          {
-            label: "Rooms blocked",
-            value: String(blocking.length),
-            hint: blocking.length ? "Held out of inventory" : "No inventory held back",
-            icon: DoorClosedIcon,
-            tone: "blue",
-          },
-          {
-            label: "Estimated spend",
-            value: moneyShort(spend),
-            hint: "Across all open tickets",
-            icon: WalletIcon,
-            tone: "green",
-          },
-        ]}
-      />
 
       <Panel
         title="Maintenance board"
@@ -141,7 +98,7 @@ export function MaintenanceBoard({
               <Input
                 value={query}
                 onChange={(e) => setQuery(e.target.value)}
-                placeholder="Ticket, room or tech"
+                placeholder="Ticket or room"
                 className="h-9 w-40 pl-8 text-xs sm:w-48"
                 aria-label="Search tickets"
               />
@@ -246,13 +203,6 @@ export function MaintenanceBoard({
                       </p>
                     </div>
 
-                    <div className="flex w-32 shrink-0 items-center gap-2">
-                      <span className="flex size-6 items-center justify-center rounded-md bg-muted text-[0.625rem] font-semibold text-muted-foreground">
-                        {initials(t.assignedTo)}
-                      </span>
-                      <span className="truncate text-xs">{t.assignedTo.split(" ")[0]}</span>
-                    </div>
-
                     <div className="w-24 shrink-0 text-right">
                       <p className={cn("text-xs font-medium", overdue ? "text-destructive" : "text-muted-foreground")}>
                         {t.status === "resolved" ? "closed" : `due ${relativeDays(anchor, t.dueAt)}`}
@@ -289,7 +239,6 @@ export function MaintenanceBoard({
         draft={draft}
         onOpenChange={(open) => !open && setDraft(null)}
         rooms={rooms}
-        staff={staff}
         propertyId={propertyId}
       />
     </>
